@@ -1,0 +1,21 @@
+name: "Sync labels"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/other-configurations/labels.yml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  configure-labels:
+    name: Configure Labels
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: JackPlowman/reusable-workflows/.github/workflows/common-sync-labels.yml@440c19531fe4aaad17688abf374ed722792369c5 # v2025.08.08.01
+    secrets:
+      workflow_github_token: ${{ secrets.GITHUB_TOKEN }}

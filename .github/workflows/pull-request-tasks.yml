@@ -1,0 +1,17 @@
+name: "Pull Request Tasks"
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  common-pull-request-tasks:
+    name: Common Pull Request Tasks
+    permissions:
+      pull-requests: write
+    uses: JackPlowman/reusable-workflows/.github/workflows/common-pull-request-tasks.yml@440c19531fe4aaad17688abf374ed722792369c5 # v2025.08.08.01
+    secrets:
+      workflow_github_token: ${{ secrets.GITHUB_TOKEN }}

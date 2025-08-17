@@ -1,0 +1,17 @@
+name: Clean Caches
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  clean-caches:
+    name: Clean Caches
+    permissions:
+      contents: read
+    uses: JackPlowman/reusable-workflows/.github/workflows/common-clean-caches.yml@440c19531fe4aaad17688abf374ed722792369c5 # v2025.08.08.01
+    secrets:
+      workflow_github_token: ${{ secrets.GH_TOKEN }}
