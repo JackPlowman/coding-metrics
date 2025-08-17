@@ -25,18 +25,13 @@ markdown:
               [
                 "docs/*.md",
                 "*.md",
-                "LICENSE",
+                "LICENCE",
                 ".github/pull_request_template.md",
               ]
-python:
+go:
   - any:
       - changed-files:
-          - any-glob-to-any-file: ["*.py", "**/*.py"]
-typescript:
-  - any:
-      - changed-files:
-          - any-glob-to-any-file:
-              ["*.ts", "*.tsx", "**/*.ts", "**/*.tsx", "**/tsconfig.json"]
+          - any-glob-to-any-file: ["*.go", "go.mod", "go.sum"]
 shell:
   - any:
       - changed-files:
