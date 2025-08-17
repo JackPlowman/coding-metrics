@@ -45,12 +45,9 @@
 - color: 66A615
   name: just
   description: Pull requests that update Just code
-- color: 2b67c6
-  name: python
-  description: Pull requests that update Python code
-- color: 00ff1e
-  name: typescript
-  description: Pull requests that update TypeScript code
+- color: 006B75
+  name: go
+  description: Pull requests that update Go code
 # Components
 - color: ff0073
   name: git_hooks
