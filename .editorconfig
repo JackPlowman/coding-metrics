@@ -10,3 +10,13 @@ trim_trailing_whitespace = true
 
 [*.md]
 indent_size = unset
+
+[{Dockerfile,Dockerfile.}*]
+indent_size = 4
+
+[*.go]
+indent_size = 2
+indent_style = tab
+
+[go.mod]
+indent_style = unset
