@@ -1,8 +1,8 @@
-# Repository Name
+# Coding Metrics
 
 ## Table of Contents
 
-- [Repository Name](#repository-name)
+- [Coding Metrics](#coding-metrics)
   - [Table of Contents](#table-of-contents)
   - [Contributing](#contributing)
 
