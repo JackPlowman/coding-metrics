@@ -2,6 +2,8 @@ version: 2
 
 updates:
   - package-ecosystem: "github-actions"
+    commit-message:
+      prefix: "deps(github-actions)"
     directory: "/"
     schedule:
       interval: "cron"
@@ -16,6 +18,42 @@ updates:
         exclude-patterns:
           - "super-linter/super-linter"
           - "JackPlowman/reusable-workflows"
+        update-types:
+          - "patch"
+          - "minor"
+
+  - package-ecosystem: "gomod"
+    commit-message:
+      prefix: "deps(go)"
+    directory: "/"
+    schedule:
+      interval: "cron"
+      cronjob: "30 7 * * *"
+      timezone: "Europe/London"
+    target-branch: "main"
+    groups:
+      go:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+
+  - package-ecosystem: "docker"
+    commit-message:
+      prefix: "deps(docker)"
+    directory: "/"
+    schedule:
+      interval: "cron"
+      cronjob: "30 7 * * *"
+      timezone: "Europe/London"
+    target-branch: "main"
+    groups:
+      docker:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
         update-types:
           - "patch"
           - "minor"
