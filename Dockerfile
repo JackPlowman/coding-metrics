@@ -24,4 +24,5 @@ COPY --from=builder /bin/coding-metrics /usr/local/bin/coding-metrics
 USER appuser
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD ["pidof", "coding-metrics"]
+
 CMD [ "/usr/local/bin/coding-metrics" ]
