@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Copy module manifest first to leverage layer caching
 COPY go.mod ./
+COPY go.sum ./
 
 # Pre-download modules (none yet, but keeps cache structure for future deps)
 RUN --mount=type=cache,target=/go/pkg/mod \
