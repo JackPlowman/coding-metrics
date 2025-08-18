@@ -1,0 +1,17 @@
+name: coding-metrics
+description: Run the coding-metrics app via its Dockerfile as a Docker-based GitHub Action
+author: Jack Plowman
+
+# Optional: tweak the Marketplace appearance if/when published
+branding:
+  icon: "code"
+  color: "blue"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+
+inputs:
+  GITHUB_TOKEN:
+    description: "The GitHub token"
+    required: true
