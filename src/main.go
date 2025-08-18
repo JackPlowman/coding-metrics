@@ -46,6 +46,6 @@ func createLocalFile() *os.File {
 	}
 
 	// Fallback: write to stdout, but warn to stderr.
-	zap.L().Warn("warning: could not create", zap.String("path", path), zap.String("error", err.Error()))
+	zap.L().Warn("warning: could not create", zap.String("path", path), zap.Error(err))
 	return os.Stdout
 }
