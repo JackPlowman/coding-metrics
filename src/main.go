@@ -41,7 +41,7 @@ func createLocalFile() *os.File {
 	path := filepath.Join(os.TempDir(), "output.svg")
 	file, err := os.Create(path)
 	if err == nil {
-		zap.L().Info("writing SVG to", zap.String("path", path))
+		zap.L().Info("Writing SVG to file", zap.String("path", path))
 		return file
 	}
 
