@@ -17,8 +17,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 FROM alpine:3.22 AS runner
 
-RUN apk add --no-cache ca-certificates tzdata \
-    && adduser -D -H -u 10001 appuser
+RUN adduser -D -H -u 10001 appuser
 
 COPY --from=builder /bin/coding-metrics /usr/local/bin/coding-metrics
 
