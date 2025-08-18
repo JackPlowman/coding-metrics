@@ -4,15 +4,14 @@ author: Jack Plowman
 
 # Optional: tweak the Marketplace appearance if/when published
 branding:
-  icon: 'code'
-  color: 'blue'
+  icon: "code"
+  color: "blue"
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: "docker"
+  image: "Dockerfile"
 
 inputs:
   GITHUB_TOKEN:
     description: "The GitHub token"
     required: true
-
