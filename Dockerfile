@@ -20,9 +20,6 @@ FROM alpine:3.22 AS runner
 
 RUN adduser -D -H -u 10001 appuser
 
-WORKDIR /app
-RUN chown appuser /app
-
 COPY --from=builder /bin/coding-metrics /usr/local/bin/coding-metrics
 
 USER appuser
