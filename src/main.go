@@ -46,6 +46,6 @@ func createLocalFile() *os.File {
 	}
 
 	// Fallback: write to stdout, but warn to stderr.
-	zap.L().Warn("warning: could not create", zap.String("path", path), zap.Error(err))
+	zap.L().Warn("Could not create SVG file, falling back to stdout", zap.String("path", path), zap.Error(err))
 	return os.Stdout
 }
