@@ -1,7 +1,26 @@
-FROM golang:1.25.0-alpine
+FROM golang:1.25.0-alpine AS builder
 
-RUN mkdir /coding-metrics
-COPY src /coding-metrics
+WORKDIR /app
 
-RUN go build -o /coding-metrics/coding-metrics /coding-metrics && rm -rf /coding-metrics/src
-CMD [ "/coding-metrics/coding-metrics" ]
+# Copy module manifest first to leverage layer caching
+COPY go.mod ./
+
+# Pre-download modules (none yet, but keeps cache structure for future deps)
+RUN --mount=type=cache,target=/go/pkg/mod \
+	go mod download || true
+
+# Copy source and build
+COPY src ./src
+RUN --mount=type=cache,target=/go/pkg/mod \
+	--mount=type=cache,target=/root/.cache/go-build \
+	CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /bin/coding-metrics ./src
+
+FROM alpine:3.20 AS runner
+
+RUN apk add --no-cache ca-certificates tzdata \
+	&& adduser -D -H -u 10001 appuser
+
+COPY --from=builder /bin/coding-metrics /usr/local/bin/coding-metrics
+
+USER appuser
+CMD [ "/usr/local/bin/coding-metrics" ]
