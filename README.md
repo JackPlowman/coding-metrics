@@ -11,7 +11,6 @@ A GitHub Action to generate a SVG badge for your coding metrics.
     - [Quick Contribution Guide](#quick-contribution-guide)
   - [📄 License](#-license)
 
-
 ## 💡 Inspiration
 
 - [Lowlighter Metrics](https://github.com/lowlighter/metrics)
