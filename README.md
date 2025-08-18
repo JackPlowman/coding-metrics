@@ -13,8 +13,8 @@ A GitHub Action to generate a SVG badge for your coding metrics.
 
 ## 💡 Inspiration
 
-- [Lowlighter Metrics](https://github.com/lowlighter/metrics)
-- [GitHub Readme Stats](https://github.com/anuraghazra/github-readme-stats)
+- [Lowlighter metrics](https://github.com/lowlighter/metrics)
+- [GitHub readme stats](https://github.com/anuraghazra/github-readme-stats)
 
 ## 🤝 Contributing
 
