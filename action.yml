@@ -15,3 +15,6 @@ inputs:
   GITHUB_TOKEN:
     description: "The GitHub token"
     required: true
+  GITHUB_USER_OR_ORGANISATION_NAME:
+    description: "The GitHub user or organisation name"
+    required: true
