@@ -22,7 +22,11 @@ func generateSVGContent(svgCanvas *svg.SVG) {
 	handle := "@" + userName
 	drawStandardHeader(svgCanvas, cardX, cardY, cardW, avatarURL, handle, displayName)
 
-	prTotal, _ := getPullRequestTotal(userName)
+	prTotal, prErr := getPullRequestTotal(userName)
+	if prErr != nil {
+		zap.L().Error("Failed to get pull request total", zap.Error(prErr))
+		prTotal = -1 // Sentinel value indicating error
+	}
 	issuesTotal, err := getIssuesTotal(userName)
 	if err != nil {
 		zap.L().Error("Failed to get GitHub issues total", zap.Error(err))
