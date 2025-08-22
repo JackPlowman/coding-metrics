@@ -43,6 +43,9 @@ func createMetricsBar(svgCanvas *svg.SVG, cardX, cardY int, userName string) {
 		zap.L().Fatal("Failed to get GitHub issues total", zap.Error(err))
 	}
 
-	commits := QueryGitHubQLAPI("", nil, nil)
+	commits, err := getCommitsTotal(userName)
+	if err != nil {
+		zap.L().Fatal("Failed to get commits total", zap.Error(err))
+	}
 	drawMetrics(svgCanvas, cardX, cardY, prTotal, issuesTotal, commits)
 }
