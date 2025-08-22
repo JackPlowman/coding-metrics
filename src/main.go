@@ -1,8 +1,9 @@
 package main
 
 import (
-	"go.uber.org/zap"
 	"os"
+
+	"go.uber.org/zap"
 )
 
 func init() {

@@ -10,7 +10,7 @@ import (
 func getPullRequestTotal() {
 	username := "JackPlowman" // TODO: get username from GITHUB_TOKEN
 	url := fmt.Sprintf("https://api.github.com/search/issues?q=author:%s+type:pr", username)
-	
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Printf("Failed to create request for pull request total: %v\n", err)
@@ -50,7 +50,7 @@ func getPullRequestTotal() {
 // getUserAvatarURL fetches the user's avatar URL from GitHub REST API
 func getUserAvatarURL(username string) (string, error) {
 	url := fmt.Sprintf("https://api.github.com/users/%s", username)
-	
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
@@ -82,4 +82,3 @@ func getUserAvatarURL(username string) (string, error) {
 
 	return user.AvatarURL, nil
 }
-
