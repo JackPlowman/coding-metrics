@@ -107,3 +107,107 @@ func getGitHubUserInfo() (avatarURL, login, name string, err error) {
 
 	return user.AvatarURL, user.Login, user.Name, nil
 }
+
+// getCommitsTotal fetches the total number of commits made by a user to default branches across all repositories
+func getCommitsTotal(username string) (int, error) {
+	// First, get the user's ID
+	userQuery := `
+	query($login: String!) {
+		user(login: $login) {
+			id
+		}
+	}`
+
+	var userResult struct {
+		User struct {
+			ID string `json:"id"`
+		} `json:"user"`
+	}
+
+	userVariables := map[string]interface{}{
+		"login": username,
+	}
+
+	if err := QueryGitHubQLAPI(userQuery, userVariables, &userResult); err != nil {
+		return 0, fmt.Errorf("failed to get user ID: %w", err)
+	}
+
+	userID := userResult.User.ID
+
+	// Now query repositories and commits using the user ID
+	query := `
+	query($login: String!, $userId: ID!, $after: String) {
+		user(login: $login) {
+			repositories(first: 100, after: $after, ownerAffiliations: [OWNER, ORGANIZATION_MEMBER, COLLABORATOR]) {
+				pageInfo {
+					hasNextPage
+					endCursor
+				}
+				nodes {
+					name
+					defaultBranchRef {
+						target {
+							... on Commit {
+								history(author: {id: $userId}) {
+									totalCount
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}`
+
+	variables := map[string]interface{}{
+		"login":  username,
+		"userId": userID,
+	}
+
+	totalCommits := 0
+	hasNextPage := true
+	cursor := ""
+
+	for hasNextPage {
+		if cursor != "" {
+			variables["after"] = cursor
+		}
+
+		var result struct {
+			User struct {
+				Repositories struct {
+					PageInfo struct {
+						HasNextPage bool   `json:"hasNextPage"`
+						EndCursor   string `json:"endCursor"`
+					} `json:"pageInfo"`
+					Nodes []struct {
+						Name             string `json:"name"`
+						DefaultBranchRef *struct {
+							Target struct {
+								History struct {
+									TotalCount int `json:"totalCount"`
+								} `json:"history"`
+							} `json:"target"`
+						} `json:"defaultBranchRef"`
+					} `json:"nodes"`
+				} `json:"repositories"`
+			} `json:"user"`
+		}
+
+		if err := QueryGitHubQLAPI(query, variables, &result); err != nil {
+			return 0, fmt.Errorf("failed to query commits: %w", err)
+		}
+
+		for _, repo := range result.User.Repositories.Nodes {
+			if repo.DefaultBranchRef != nil {
+				totalCommits += repo.DefaultBranchRef.Target.History.TotalCount
+			}
+		}
+
+		hasNextPage = result.User.Repositories.PageInfo.HasNextPage
+		cursor = result.User.Repositories.PageInfo.EndCursor
+	}
+
+	fmt.Printf("Total commits by %s: %d\n", username, totalCommits)
+	return totalCommits, nil
+}

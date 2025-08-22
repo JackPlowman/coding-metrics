@@ -45,8 +45,22 @@ func drawHeader(canvas *svg.SVG, cardX, cardY int, username string, tag string) 
 	canvas.Text(cardX+22, cardY+58, tag, "fill:#94a3b8;font-size:12px")
 }
 
+// drawAvatar renders the user's avatar as a rounded square. The
+// design intentionally avoids a circle per project requirements.
+func drawAvatar(canvas *svg.SVG, cardX, cardY, cardW int, avatarURL string) {
+	avatarX, avatarY := cardX+cardW-92, cardY+18
+
+	// Create a clipping path for the rounded rectangle
+	canvas.ClipPath(`id="avatar-clip"`)
+	canvas.Roundrect(avatarX, avatarY, 64, 64, 8, 8, "")
+	canvas.ClipEnd()
+
+	// Use the avatar URL directly in an SVG image element
+	canvas.Image(avatarX, avatarY, 64, 64, avatarURL, `clip-path="url(#avatar-clip)"`)
+}
+
 // drawMetrics renders the three metric boxes (commits, PRs, issues).
-func drawMetrics(canvas *svg.SVG, cardX, cardY int, prTotal int, issuesTotal int) {
+func drawMetrics(canvas *svg.SVG, cardX, cardY int, prTotal int, issuesTotal int, commits int) {
 	boxW, boxH := 180, 64
 	gap := 16
 	startX := cardX + 22
@@ -54,7 +68,7 @@ func drawMetrics(canvas *svg.SVG, cardX, cardY int, prTotal int, issuesTotal int
 
 	// Commits
 	canvas.Roundrect(startX, startY, boxW, boxH, 8, 8, "fill:#071029")
-	canvas.Text(startX+14, startY+26, "1,234", "fill:#9be7ff;font-size:20px;font-weight:700")
+	canvas.Text(startX+14, startY+26, strconv.Itoa(commits), "fill:#9be7ff;font-size:20px;font-weight:700")
 	canvas.Text(startX+14, startY+46, "commits", "fill:#9aa6b8;font-size:12px")
 
 	// PRs
