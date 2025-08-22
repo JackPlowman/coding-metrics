@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 
 	svg "github.com/ajstarks/svgo"
 	"go.uber.org/zap"
@@ -45,7 +46,7 @@ func drawHeader(canvas *svg.SVG, cardX, cardY int, username string, tag string) 
 }
 
 // drawMetrics renders the three metric boxes (commits, PRs, issues).
-func drawMetrics(canvas *svg.SVG, cardX, cardY int) {
+func drawMetrics(canvas *svg.SVG, cardX, cardY int, prTotal int, issuesTotal int) {
 	boxW, boxH := 180, 64
 	gap := 16
 	startX := cardX + 22
@@ -59,13 +60,13 @@ func drawMetrics(canvas *svg.SVG, cardX, cardY int) {
 	// PRs
 	prX := startX + boxW + gap
 	canvas.Roundrect(prX, startY, boxW, boxH, 8, 8, "fill:#071029")
-	canvas.Text(prX+14, startY+26, "84", "fill:#ffd580;font-size:20px;font-weight:700")
+	canvas.Text(prX+14, startY+26, strconv.Itoa(prTotal), "fill:#ffd580;font-size:20px;font-weight:700")
 	canvas.Text(prX+14, startY+46, "pull requests", "fill:#9aa6b8;font-size:12px")
 
 	// Issues
 	issuesX := prX + boxW + gap
 	canvas.Roundrect(issuesX, startY, boxW, boxH, 8, 8, "fill:#071029")
-	canvas.Text(issuesX+14, startY+26, "12", "fill:#ff9b9b;font-size:20px;font-weight:700")
+	canvas.Text(issuesX+14, startY+26, strconv.Itoa(issuesTotal), "fill:#ff9b9b;font-size:20px;font-weight:700")
 	canvas.Text(issuesX+14, startY+46, "open issues", "fill:#9aa6b8;font-size:12px")
 }
 
