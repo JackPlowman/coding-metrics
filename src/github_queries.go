@@ -16,7 +16,7 @@ func getPullRequestTotal(username string) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Printf("Failed to create request for pull request total: %v\n", err)
-
+		return
 	}
 	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
 
