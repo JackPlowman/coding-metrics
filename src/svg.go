@@ -39,9 +39,9 @@ func drawCard(canvas *svg.SVG, x, y, w, h int) {
 }
 
 // drawHeader renders the name and handle in the card header.
-func drawHeader(canvas *svg.SVG, cardX, cardY int) {
-	canvas.Text(cardX+22, cardY+36, "Jack Plowman", "fill:#cdd6f4;font-size:18px;font-weight:700")
-	canvas.Text(cardX+22, cardY+58, "@jackplowman", "fill:#94a3b8;font-size:12px")
+func drawHeader(canvas *svg.SVG, cardX, cardY int, username string, tag string) {
+	canvas.Text(cardX+22, cardY+36, username, "fill:#cdd6f4;font-size:18px;font-weight:700")
+	canvas.Text(cardX+22, cardY+58, tag, "fill:#94a3b8;font-size:12px")
 }
 
 // drawMetrics renders the three metric boxes (commits, PRs, issues).
