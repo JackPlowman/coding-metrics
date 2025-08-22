@@ -20,7 +20,7 @@ func generateSVGContent(svgCanvas *svg.SVG) {
 	}
 
 	handle := "@" + userName
-	drawStandardHeader(svgCanvas, cardX, cardY, cardW, avatarURL, handle, userName)
+	drawStandardHeader(svgCanvas, cardX, cardY, cardW, avatarURL, handle, displayName)
 
 	getPullRequestTotal(userName)
 	getIssuesTotal(userName)
