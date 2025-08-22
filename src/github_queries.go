@@ -47,13 +47,11 @@ func getPullRequestTotal() {
 	fmt.Printf("Total pull requests by %s: %d\n", username, result.TotalCount)
 }
 
-// getUserAvatarURL fetches the user's avatar URL from GitHub REST API
-func getUserAvatarURL(username string) (string, error) {
-	url := fmt.Sprintf("https://api.github.com/users/%s", username)
-
-	req, err := http.NewRequest("GET", url, nil)
+// getGitHubUserInfo fetches the user's avatar URL, login (tag), and display name from GitHub REST API
+func getGitHubUserInfo() (avatarURL, login, name string, err error) {
+	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return "", "", "", fmt.Errorf("failed to create request: %w", err)
 	}
 
 	// Add GitHub token if available for higher rate limits
@@ -64,21 +62,23 @@ func getUserAvatarURL(username string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to make request: %w", err)
+		return "", "", "", fmt.Errorf("failed to make request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return "", "", "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
 
 	var user struct {
 		AvatarURL string `json:"avatar_url"`
+		Login     string `json:"login"`
+		Name      string `json:"name"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		return "", fmt.Errorf("failed to decode response: %w", err)
+		return "", "", "", fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return user.AvatarURL, nil
+	return user.AvatarURL, user.Login, user.Name, nil
 }
