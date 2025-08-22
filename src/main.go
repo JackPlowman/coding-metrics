@@ -6,8 +6,8 @@ import (
 	"go.uber.org/zap"
 )
 
+// initialize global logger
 func init() {
-	// initialize global logger
 	logger, err := initLogger()
 	zap.ReplaceGlobals(zap.Must(logger, err))
 }
@@ -24,20 +24,8 @@ func initLogger() (*zap.Logger, error) {
 
 // main is the entry point for the application.
 func main() {
-
 	file := createLocalFile()
 	svgCanvas := setupSVG(file)
-	getPullRequestTotal()
-
-	// Card coordinates used by multiple sections.
-	cardX, cardY := 40, 30
-	cardW, cardH := 720, 200
-	drawCard(svgCanvas, cardX, cardY, cardW, cardH)
-	drawHeader(svgCanvas, cardX, cardY)
-	drawAvatar(svgCanvas, cardX, cardY, cardW, "JackPlowman") // TODO: get username from GITHUB_TOKEN
-	drawMetrics(svgCanvas, cardX, cardY)
-	drawLanguageBars(svgCanvas, cardX, cardY)
-	drawFooter(svgCanvas, cardX, cardY, cardH)
-
+	generateSVGContent(svgCanvas)
 	completeSVG(svgCanvas)
 }
