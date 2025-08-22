@@ -1,8 +1,9 @@
 package main
 
 import (
-	"go.uber.org/zap"
 	"os"
+
+	"go.uber.org/zap"
 )
 
 func init() {
@@ -33,7 +34,7 @@ func main() {
 	cardW, cardH := 720, 200
 	drawCard(svgCanvas, cardX, cardY, cardW, cardH)
 	drawHeader(svgCanvas, cardX, cardY)
-	drawAvatar(svgCanvas, cardX, cardY, cardW)
+	drawAvatar(svgCanvas, cardX, cardY, cardW, "JackPlowman") // TODO: get username from GITHUB_TOKEN
 	drawMetrics(svgCanvas, cardX, cardY)
 	drawLanguageBars(svgCanvas, cardX, cardY)
 	drawFooter(svgCanvas, cardX, cardY, cardH)
