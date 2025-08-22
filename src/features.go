@@ -5,8 +5,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// generateSVGContent orchestrates the drawing of the SVG card and its components,
+// including the header, metrics, language bars, and footer.
 func generateSVGContent(svgCanvas *svg.SVG) {
-
 	getPullRequestTotal()
 	// Card coordinates used by multiple sections.
 	cardX, cardY := 40, 30
@@ -19,6 +20,8 @@ func generateSVGContent(svgCanvas *svg.SVG) {
 	drawFooter(svgCanvas, cardX, cardY, cardH)
 }
 
+// drawStandardHeader draws the standard header section of the SVG card, including the user's name,
+// handle, and avatar
 func drawStandardHeader(svgCanvas *svg.SVG, cardX, cardY, cardW int) {
 	drawHeader(svgCanvas, cardX, cardY, "Jack Plowman", "@jackplowman")
 	// Get the user's avatar URL from GitHub
