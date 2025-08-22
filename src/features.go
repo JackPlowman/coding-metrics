@@ -13,13 +13,13 @@ func generateSVGContent(svgCanvas *svg.SVG) {
 	cardW, cardH := 720, 200
 	drawCard(svgCanvas, cardX, cardY, cardW, cardH)
 
-	avatarURL, userTag, userName, err := getGitHubUserInfo()
+	avatarURL, userName, displayName, err := getGitHubUserInfo()
 	if err != nil {
 		zap.L().Error("Failed to get GitHub user info", zap.Error(err))
 		return
 	}
 
-	handle := "@" + userTag
+	handle := "@" + userName
 	drawStandardHeader(svgCanvas, cardX, cardY, cardW, avatarURL, handle, userName)
 
 	getPullRequestTotal(userName)
