@@ -57,7 +57,6 @@ func NewGitHubGraphQLClient(token string) *GitHubGraphQLClient {
 
 // Query executes a GraphQL query against the GitHub API
 func (c *GitHubGraphQLClient) Query(query string, variables map[string]interface{}, result interface{}) error {
-
 	requestBody := GitHubGraphQLRequest{
 		Query:     query,
 		Variables: variables,
