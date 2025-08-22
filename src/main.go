@@ -16,7 +16,7 @@ func init() {
 // DEBUG environment variable. If DEBUG=="true" a development logger
 // will be returned, otherwise a production logger is used.
 func initLogger() (*zap.Logger, error) {
-	if os.Getenv("DEBUG") == "true" {
+	if os.Getenv("INPUT_DEBUG") == "true" {
 		return zap.NewDevelopment()
 	}
 	return zap.NewProduction()
