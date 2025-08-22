@@ -30,7 +30,7 @@ func getPullRequestTotal() {
 
 	err := client.Query(context.Background(), &query, vars)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Printf("Failed to query GitHub API for pull request total: %v\n", err)
 		return
 	}
 
