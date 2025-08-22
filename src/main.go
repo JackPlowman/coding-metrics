@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ajstarks/svgo"
+	svg "github.com/ajstarks/svgo"
 	"go.uber.org/zap"
 )
 
@@ -29,6 +29,7 @@ func main() {
 	width := 800
 	height := 260
 	file := createLocalFile()
+	getPullRequestTotal()
 
 	canvas := svg.New(file)
 	canvas.Start(width, height)
