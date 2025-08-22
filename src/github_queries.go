@@ -47,8 +47,8 @@ func getPullRequestTotal() {
 	fmt.Printf("Total pull requests by %s: %d\n", username, result.TotalCount)
 }
 
-// getUserInfo fetches the user's avatar URL, login (tag), and display name from GitHub REST API
-func getUserInfo() (avatarURL, login, name string, err error) {
+// getGitHubUserInfo fetches the user's avatar URL, login (tag), and display name from GitHub REST API
+func getGitHubUserInfo() (avatarURL, login, name string, err error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to create request: %w", err)
