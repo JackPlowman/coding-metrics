@@ -7,20 +7,18 @@ import (
 	"os"
 )
 
-func getPullRequestTotal() {
-	username := "JackPlowman" // TODO: get username from GITHUB_TOKEN
+const bearerPrefix = "Bearer "
+
+// getPullRequestTotal fetches the total number of pull requests for a given user
+func getPullRequestTotal(username string) {
 	url := fmt.Sprintf("https://api.github.com/search/issues?q=author:%s+type:pr", username)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Printf("Failed to create request for pull request total: %v\n", err)
-		return
-	}
 
-	// Add GitHub token if available for higher rate limits
-	if token := os.Getenv("INPUT_GITHUB_TOKEN"); token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
 	}
+	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -47,17 +45,49 @@ func getPullRequestTotal() {
 	fmt.Printf("Total pull requests by %s: %d\n", username, result.TotalCount)
 }
 
+// getIssuesTotal fetches the total number of issues for a given user
+func getIssuesTotal(username string) {
+	url := fmt.Sprintf("https://api.github.com/search/issues?q=author:%s+type:issue", username)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Printf("Failed to create request for issues total: %v\n", err)
+		return
+	}
+	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Failed to query GitHub API for issues total: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("GitHub API returned status %d for issues total\n", resp.StatusCode)
+		return
+	}
+
+	var result struct {
+		TotalCount int `json:"total_count"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		fmt.Printf("Failed to decode issues total response: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Total issues by %s: %d\n", username, result.TotalCount)
+}
+
 // getGitHubUserInfo fetches the user's avatar URL, login (tag), and display name from GitHub REST API
 func getGitHubUserInfo() (avatarURL, login, name string, err error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to create request: %w", err)
 	}
-
-	// Add GitHub token if available for higher rate limits
-	if token := os.Getenv("INPUT_GITHUB_TOKEN"); token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
-	}
+	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

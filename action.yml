@@ -12,6 +12,10 @@ runs:
   image: "Dockerfile"
 
 inputs:
-  GITHUB_TOKEN:
+  github_token:
     description: "The GitHub token"
     required: true
+  debug:
+    description: "Enable debug logging"
+    required: false
+    default: "false"
