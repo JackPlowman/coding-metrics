@@ -23,7 +23,11 @@ func generateSVGContent(svgCanvas *svg.SVG) {
 	drawStandardHeader(svgCanvas, cardX, cardY, cardW, avatarURL, handle, displayName)
 
 	prTotal, _ := getPullRequestTotal(userName)
-	issuesTotal, _ := getIssuesTotal(userName)
+	issuesTotal, err := getIssuesTotal(userName)
+	if err != nil {
+		zap.L().Error("Failed to get GitHub issues total", zap.Error(err))
+		return
+	}
 	drawMetrics(svgCanvas, cardX, cardY, prTotal, issuesTotal)
 	drawLanguageBars(svgCanvas, cardX, cardY)
 	drawFooter(svgCanvas, cardX, cardY, cardH)
