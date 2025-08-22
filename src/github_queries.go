@@ -35,7 +35,6 @@ func getPullRequestTotal(username string) (int, error) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		fmt.Printf("Failed to decode pull request total response: %v\n", err)
 		return 0, fmt.Errorf("Failed to decode pull request total response: %w", err)
 	}
 
@@ -57,14 +56,12 @@ func getIssuesTotal(username string) (int, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Failed to query GitHub API for issues total: %v\n", err)
-		return 0, err
+		return 0, fmt.Errorf("Failed to query GitHub API for issues total: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("GitHub API returned status %d for issues total\n", resp.StatusCode)
-		return 0, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return 0, fmt.Errorf("GitHub API returned status %d for issues total	", resp.StatusCode)
 	}
 
 	var result struct {
@@ -72,8 +69,7 @@ func getIssuesTotal(username string) (int, error) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		fmt.Printf("Failed to decode issues total response: %v\n", err)
-		return 0, err
+		return 0, fmt.Errorf("Failed to decode issues total response: %w", err)
 	}
 
 	fmt.Printf("Total issues by %s: %d\n", username, result.TotalCount)
