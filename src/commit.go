@@ -19,7 +19,7 @@ func commitSVGChanges(file *os.File) {
 	}
 	ownerRepo := os.Getenv("INPUT_REPOSITORY")
 	parts := strings.Split(ownerRepo, "/")
-	branch := "main"
+	branch := os.Getenv("INPUT_OUTPUT_BRANCH")
 	token := os.Getenv("INPUT_WORKFLOW_GITHUB_TOKEN")
 	path := os.Getenv("INPUT_OUTPUT_FILE_NAME")
 	commitMessage := os.Getenv("INPUT_COMMIT_MESSAGE")
@@ -53,7 +53,7 @@ func commitSVGChanges(file *os.File) {
 		Branch:  github.String(branch),
 		// Leave Author/Committer nil to get a bot-verified signature
 	}
-	_, _, err = gh.Repositories.CreateFile(ctx, owner, repo, path, opts) // or UpdateFile if you set SHA
+	_, _, err = gh.Repositories.CreateFile(ctx, owner, repo, path, opts)
 	if err != nil {
 		zap.L().Fatal("Failed to upload SVG file", zap.Error(err))
 	}
