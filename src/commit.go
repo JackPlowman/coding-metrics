@@ -21,7 +21,8 @@ func commitSVGChanges(file *os.File) {
 	parts := strings.Split(ownerRepo, "/")
 	branch := "main"
 	token := os.Getenv("INPUT_WORKFLOW_GITHUB_TOKEN")
-	path := "output.svg"
+	path := os.Getenv("INPUT_OUTPUT_FILE_NAME")
+	commitMessage := os.Getenv("INPUT_COMMIT_MESSAGE")
 	if len(parts) != 2 {
 		zap.L().Fatal("Invalid repository format", zap.String("repository", ownerRepo))
 		return
@@ -46,7 +47,7 @@ func commitSVGChanges(file *os.File) {
 		return
 	}
 	opts := &github.RepositoryContentFileOptions{
-		Message: github.String("Update SVG file"),
+		Message: github.String(commitMessage),
 		Content: contentBytes,
 		SHA:     sha, // nil if new file
 		Branch:  github.String(branch),
