@@ -9,15 +9,14 @@ fmt:
     go fmt ./src
 
 fmt-check:
-    if [ -z "$(gofmt -l .)" ];
-    then
-        echo "OK: all Go files are go formatted."
-    else
-        echo "Not go formatted:"
-        gofmt -l .
-        echo "Diff:"
-        gofmt -d .;
-        exit 1;
+    @if [ -z "$(gofmt -l .)" ]; \
+        then echo "OK: all Go files are go formatted."; \
+    else \
+        echo "Not go formatted:"; \
+        gofmt -l .; \
+        echo "Diff:"; \
+        gofmt -d .; \
+        exit 1; \
     fi
 
 # ------------------------------------------------------------------------------
