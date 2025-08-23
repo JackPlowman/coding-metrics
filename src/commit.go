@@ -20,7 +20,7 @@ func commitSVGChanges(file *os.File) {
 	ownerRepo := os.Getenv("INPUT_REPOSITORY")
 	parts := strings.Split(ownerRepo, "/")
 	branch := "main"
-	token := os.Getenv("INPUT_GITHUB_TOKEN")
+	token := os.Getenv("INPUT_WORKFLOW_GITHUB_TOKEN")
 	path := "output.svg"
 	if len(parts) != 2 {
 		zap.L().Fatal("Invalid repository format", zap.String("repository", ownerRepo))
