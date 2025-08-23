@@ -28,4 +28,6 @@ func main() {
 	svgCanvas := setupSVG(file)
 	generateSVGContent(svgCanvas)
 	completeSVG(svgCanvas)
+
+	commitSVGChanges()
 }

@@ -33,6 +33,7 @@ func createStandardHeader(svgCanvas *svg.SVG, cardX, cardY, cardW int, avatarURL
 	drawAvatar(svgCanvas, cardX, cardY, cardW, avatarURL)
 }
 
+// createMetricsBar fetches user metrics and draws the metrics bar on the SVG card.
 func createMetricsBar(svgCanvas *svg.SVG, cardX, cardY int, userName string) {
 	prTotal, prErr := getPullRequestTotal(userName)
 	if prErr != nil {
