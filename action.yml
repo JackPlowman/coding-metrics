@@ -23,3 +23,11 @@ inputs:
     description: "The default branch name"
     required: true
     default: "main"
+  test_mode:
+    description: "Enable test mode"
+    required: false
+    default: "false"
+  repository:
+    description: "The GitHub repository (owner/repo)"
+    required: true
+    default: ${{ github.repository }}

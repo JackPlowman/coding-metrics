@@ -25,3 +25,4 @@ jobs:
         uses: ./
         with:
           github_token: ${{ secrets.GH_TOKEN }}
+          debug: "true"
