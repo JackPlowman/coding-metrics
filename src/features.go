@@ -13,14 +13,14 @@ func generateSVGContent(svgCanvas *svg.SVG) {
 	cardW, cardH := 720, 200
 	drawCard(svgCanvas, cardX, cardY, cardW, cardH)
 
-	avatarURL, userName, displayName, err := getGitHubUserInfo()
+	githubUserInfo, err := getGitHubUserInfo()
 	if err != nil {
 		zap.L().Fatal("Failed to get GitHub user info", zap.Error(err))
 	}
 
-	handle := "@" + userName
-	createStandardHeader(svgCanvas, cardX, cardY, cardW, avatarURL, handle, displayName)
-	createMetricsBar(svgCanvas, cardX, cardY, userName)
+	handle := "@" + githubUserInfo.Login
+	createStandardHeader(svgCanvas, cardX, cardY, cardW, githubUserInfo.AvatarURL, handle, githubUserInfo.Name)
+	createMetricsBar(svgCanvas, cardX, cardY, githubUserInfo.Login)
 
 	drawLanguageBars(svgCanvas, cardX, cardY)
 	drawFooter(svgCanvas, cardX, cardY, cardH)

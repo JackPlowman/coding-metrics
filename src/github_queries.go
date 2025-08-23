@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 )
 
 const bearerPrefix = "Bearer "
@@ -76,36 +77,42 @@ func getIssuesTotal(username string) (int, error) {
 	return result.TotalCount, nil
 }
 
-// getGitHubUserInfo fetches the user's avatar URL, login (tag), and display name from GitHub REST API
-func getGitHubUserInfo() (avatarURL, login, name string, err error) {
+// getGitHubUserInfo fetches the user's information from GitHub REST API
+type GitHubUserInfo struct {
+	AvatarURL    string    `json:"avatar_url"`
+	Followers    int       `json:"followers"`
+	JoinedGitHub time.Time `json:"created_at"`
+	Login        string    `json:"login"`
+	Name         string    `json:"name"`
+	PublicGists  int       `json:"public_gists"`
+	PublicRepos  int       `json:"public_repos"`
+	Type         string    `json:"type"`
+}
+
+func getGitHubUserInfo() (*GitHubUserInfo, error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to create request: %w", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to make request: %w", err)
+		return nil, fmt.Errorf("failed to make request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", "", "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
 
-	var user struct {
-		AvatarURL string `json:"avatar_url"`
-		Login     string `json:"login"`
-		Name      string `json:"name"`
-	}
+	var user GitHubUserInfo
 
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		return "", "", "", fmt.Errorf("failed to decode response: %w", err)
+		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-
-	return user.AvatarURL, user.Login, user.Name, nil
+	return &user, nil
 }
 
 // getCommitsTotal fetches the total number of commits made by a user to default branches across all repositories
