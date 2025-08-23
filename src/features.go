@@ -19,7 +19,7 @@ func generateSVGContent(svgCanvas *svg.SVG) {
 	}
 
 	handle := "@" + githubUserInfo.Login
-	createStandardHeader(svgCanvas, cardX, cardY, cardW, githubUserInfo.AvatarURL, handle, githubUserInfo.Name)
+	createStandardHeader(svgCanvas, cardX, cardY, cardW, handle, githubUserInfo)
 	createMetricsBar(svgCanvas, cardX, cardY, githubUserInfo.Login)
 
 	drawLanguageBars(svgCanvas, cardX, cardY)
@@ -28,9 +28,9 @@ func generateSVGContent(svgCanvas *svg.SVG) {
 
 // createStandardHeader draws the standard header section of the SVG card, including the user's name,
 // handle, and avatar
-func createStandardHeader(svgCanvas *svg.SVG, cardX, cardY, cardW int, avatarURL string, handle string, userName string) {
-	drawHeader(svgCanvas, cardX, cardY, userName, handle)
-	drawAvatar(svgCanvas, cardX, cardY, cardW, avatarURL)
+func createStandardHeader(svgCanvas *svg.SVG, cardX, cardY, cardW int, handle string, userInfo *GitHubUserInfo) {
+	drawHeader(svgCanvas, cardX, cardY, userInfo.Name, handle)
+	drawAvatar(svgCanvas, cardX, cardY, cardW, userInfo.AvatarURL)
 }
 
 // createMetricsBar fetches user metrics and draws the metrics bar on the SVG card.
