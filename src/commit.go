@@ -5,8 +5,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 	"go.uber.org/zap"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	gitHttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 )
 
 // commitSVGChanges commits the changes made to the SVG file.
@@ -89,10 +92,10 @@ func commitChanges(repoPath string, outputFileName string) error {
 	// Commit with bot info
 	commitMsg := fmt.Sprintf("Update SVG %s via GitHub Actions:", outputFileName)
 	_, err = w.Commit(commitMsg, &git.CommitOptions{
-		Author: &git.Signature{
+		Author: &object.Signature{
 			Name:  "github-actions[bot]",
 			Email: "github-actions[bot]@users.noreply.github.com",
-			When:  context.Now(),
+			When:  time.Now(),
 		},
 	})
 	if err != nil {
@@ -104,35 +107,19 @@ func commitChanges(repoPath string, outputFileName string) error {
 	if token == "" {
 		return fmt.Errorf("missing INPUT_GITHUB_TOKEN")
 	}
-	ownerRepo := os.Getenv("INPUT_REPOSITORY")
-	remoteURL := fmt.Sprintf("https://x-access-token:%s@github.com/%s.git", token, ownerRepo)
 
 	testMode := os.Getenv("INPUT_TEST_MODE")
 	if testMode == "false" {
 		err = repo.Push(&git.PushOptions{
 			RemoteName: "origin",
-			Auth: &gitHttpBasicAuth{
-				username: "x-access-token",
-				password: token,
-		},
-		RemoteURL: remoteURL,
-	})}
-	if err != nil {
-		return fmt.Errorf("failed to push: %w", err)
+			Auth: &gitHttp.BasicAuth{
+				Username: "x-access-token",
+				Password: token,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to push: %w", err)
+		}
 	}
 	return nil
-}
-
-// gitHttpBasicAuth implements go-git AuthMethod for basic auth.
-type gitHttpBasicAuth struct {
-	username string
-	password string
-}
-
-func (a *gitHttpBasicAuth) Name() string {
-	return "http-basic-auth"
-}
-
-func (a *gitHttpBasicAuth) String() string {
-	return fmt.Sprintf("%s:%s", a.username, a.password)
 }
