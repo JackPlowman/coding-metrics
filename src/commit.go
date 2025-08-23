@@ -116,7 +116,7 @@ func commitChanges(repoPath string, outputFileName string) error {
 				password: token,
 		},
 		RemoteURL: remoteURL,
-	})
+	})}
 	if err != nil {
 		return fmt.Errorf("failed to push: %w", err)
 	}
