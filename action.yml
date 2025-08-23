@@ -35,3 +35,7 @@ inputs:
     description: "The name of the output file"
     required: true
     default: "output.svg"
+  commit_message:
+    description: "The commit message"
+    required: false
+    default: "Update Coding Metrics"
