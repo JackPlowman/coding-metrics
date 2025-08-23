@@ -27,7 +27,15 @@ inputs:
     description: "The GitHub repository (owner/repo)"
     required: true
     default: ${{ github.repository }}
-  output_file_name:
-    description: "The name of the output file"
+  upload_branch:
+    description: "The branch to upload the file to"
+    required: true
+    default: main
+  upload_file_name:
+    description: "The name of the uploaded file"
     required: true
     default: "output.svg"
+  commit_message:
+    description: "The commit message"
+    required: true
+    default: "Upload output.svg"
