@@ -44,7 +44,7 @@ func commitSVGChanges(file *os.File) {
 	zap.L().Debug("SVG file copied to repo", zap.String("dest", destPath))
 
 	// Commit the changes to the repo.
-	err = commitChanges(repoPath)
+	err = commitChanges(repoPath, outputFileName)
 	if err != nil {
 		zap.L().Fatal("Failed to commit changes", zap.Error(err))
 	}
