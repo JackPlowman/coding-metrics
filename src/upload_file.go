@@ -78,8 +78,8 @@ func uploadSVGChanges(file *os.File) {
 	}
 
 	// Committer info
-	committerName := os.Getenv("INPUT_COMMITTER_NAME")
-	committerEmail := os.Getenv("INPUT_COMMITTER_EMAIL")
+	committerName := "github-actions[bot]"
+	committerEmail := "github-actions[bot]@users.noreply.github.com"
 	actor := os.Getenv("GITHUB_ACTOR")
 	if committerName == "" {
 		if actor != "" {
