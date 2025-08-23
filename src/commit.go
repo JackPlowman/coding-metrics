@@ -40,15 +40,20 @@ func commitSVGChanges(file *os.File) {
 		sha = fileContent.SHA
 	}
 
+	contentBytes, err := os.ReadFile(file.Name())
+	if err != nil {
+		zap.L().Fatal("Failed to read SVG file", zap.Error(err))
+		return
+	}
 	opts := &github.RepositoryContentFileOptions{
-		Message: github.String("chore: update file via API"),
-		Content: []byte("new content"),
+		Message: github.String("Update SVG file"),
+		Content: contentBytes,
 		SHA:     sha, // nil if new file
 		Branch:  github.String(branch),
 		// Leave Author/Committer nil to get a bot-verified signature
 	}
-	_, _, err := gh.Repositories.CreateFile(ctx, owner, repo, path, opts) // or UpdateFile if you set SHA
+	_, _, err = gh.Repositories.CreateFile(ctx, owner, repo, path, opts) // or UpdateFile if you set SHA
 	if err != nil {
-		panic(err)
+		zap.L().Fatal("Failed to upload SVG file", zap.Error(err))
 	}
 }
