@@ -19,3 +19,7 @@ inputs:
     description: "Enable debug logging"
     required: false
     default: "false"
+  default_branch:
+    description: "The default branch name"
+    required: true
+    default: "main"
