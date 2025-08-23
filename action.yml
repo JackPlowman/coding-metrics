@@ -19,10 +19,6 @@ inputs:
     description: "Enable debug logging"
     required: false
     default: "false"
-  default_branch:
-    description: "The default branch name"
-    required: true
-    default: "main"
   test_mode:
     description: "Enable test mode"
     required: false
@@ -31,3 +27,7 @@ inputs:
     description: "The GitHub repository (owner/repo)"
     required: true
     default: ${{ github.repository }}
+  output_file_name:
+    description: "The name of the output file"
+    required: true
+    default: "output.svg"

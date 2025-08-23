@@ -26,3 +26,5 @@ jobs:
         with:
           github_token: ${{ secrets.GH_TOKEN }}
           debug: "true"
+          test_mode: "true"
+          output_file_name: "test.svg"

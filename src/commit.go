@@ -10,20 +10,43 @@ import (
 )
 
 // commitSVGChanges commits the changes made to the SVG file.
-func commitSVGChanges() {
+func commitSVGChanges(file *os.File) {
 	ownerRepo := os.Getenv("INPUT_REPOSITORY")
 	parts := strings.Split(ownerRepo, "/")
 	if len(parts) != 2 {
-		zap.L().Error("Invalid repository format", zap.String("repository", ownerRepo))
+		zap.L().Fatal("Invalid repository format", zap.String("repository", ownerRepo))
 		return
 	}
 	owner, repo := parts[0], parts[1]
 
 	repoPath, err := cloneRepo(owner, repo)
 	if err != nil {
-		zap.L().Error("Failed to clone repo", zap.Error(err))
+		zap.L().Fatal("Failed to clone repo", zap.Error(err))
 	} else {
 		zap.L().Debug("Repo cloned", zap.String("path", repoPath))
+	}
+
+	// Copy the SVG file into the cloned repo at the root.
+	svgPath := file.Name()
+	outputFileName := os.Getenv("INPUT_OUTPUT_FILE_NAME")
+	destPath := fmt.Sprintf("%s/%s", repoPath, outputFileName)
+
+	input, err := os.ReadFile(svgPath)
+	if err != nil {
+		zap.L().Fatal("Failed to read SVG file", zap.Error(err))
+		return
+	}
+	err = os.WriteFile(destPath, input, 0644)
+	if err != nil {
+		zap.L().Fatal("Failed to write SVG file to repo", zap.Error(err))
+		return
+	}
+	zap.L().Debug("SVG file copied to repo", zap.String("dest", destPath))
+
+	// Commit the changes to the repo.
+	err = commitChanges(repoPath)
+	if err != nil {
+		zap.L().Fatal("Failed to commit changes", zap.Error(err))
 	}
 }
 
@@ -43,4 +66,73 @@ func cloneRepo(owner, repo string) (string, error) {
 		return "", fmt.Errorf("failed to clone repo: %w", err)
 	}
 	return tmpDir, nil
+}
+
+// commitChanges commits and pushes changes to the repo using a GitHub Actions bot.
+func commitChanges(repoPath string, outputFileName string) error {
+	repo, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repo: %w", err)
+	}
+
+	w, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Add all changes
+	err = w.AddGlob(".")
+	if err != nil {
+		return fmt.Errorf("failed to add changes: %w", err)
+	}
+
+	// Commit with bot info
+	commitMsg := fmt.Sprintf("Update SVG %s via GitHub Actions:", outputFileName)
+	_, err = w.Commit(commitMsg, &git.CommitOptions{
+		Author: &git.Signature{
+			Name:  "github-actions[bot]",
+			Email: "github-actions[bot]@users.noreply.github.com",
+			When:  context.Now(),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to commit: %w", err)
+	}
+
+	// Push using token
+	token := os.Getenv("INPUT_GITHUB_TOKEN")
+	if token == "" {
+		return fmt.Errorf("missing INPUT_GITHUB_TOKEN")
+	}
+	ownerRepo := os.Getenv("INPUT_REPOSITORY")
+	remoteURL := fmt.Sprintf("https://x-access-token:%s@github.com/%s.git", token, ownerRepo)
+
+	testMode := os.Getenv("INPUT_TEST_MODE")
+	if testMode == "false" {
+		err = repo.Push(&git.PushOptions{
+			RemoteName: "origin",
+			Auth: &gitHttpBasicAuth{
+				username: "x-access-token",
+				password: token,
+		},
+		RemoteURL: remoteURL,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to push: %w", err)
+	}
+	return nil
+}
+
+// gitHttpBasicAuth implements go-git AuthMethod for basic auth.
+type gitHttpBasicAuth struct {
+	username string
+	password string
+}
+
+func (a *gitHttpBasicAuth) Name() string {
+	return "http-basic-auth"
+}
+
+func (a *gitHttpBasicAuth) String() string {
+	return fmt.Sprintf("%s:%s", a.username, a.password)
 }
