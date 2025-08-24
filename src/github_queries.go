@@ -18,14 +18,14 @@ func getPullRequestTotal(username string) (int, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create request for pull request total: %w", err)
+		zap.L().Fatal("Failed to create request for pull request total", zap.Error(err))
 	}
 	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("failed to query GitHub API for pull request total: %w", err)
+		zap.L().Fatal("Failed to query GitHub API for pull request total", zap.Error(err))
 	}
 	defer func() {
 		if cerr := resp.Body.Close(); cerr != nil {
@@ -45,10 +45,10 @@ func getPullRequestTotal(username string) (int, error) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return 0, fmt.Errorf("failed to decode pull request total response: %w", err)
+		zap.L().Fatal("Failed to decode pull request total response", zap.Error(err))
 	}
 
-	fmt.Printf("Total pull requests by %s: %d\n", username, result.TotalCount)
+	zap.L().Debug("Total pull requests by user", zap.String("username", username), zap.Int("total_count", result.TotalCount))
 	return result.TotalCount, nil
 }
 
@@ -58,15 +58,14 @@ func getIssuesTotal(username string) (int, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Printf("Failed to create request for issues total: %v\n", err)
-		return 0, err
+		zap.L().Fatal("Failed to create request for issues total", zap.Error(err))
 	}
 	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("failed to query GitHub API for issues total: %w", err)
+		zap.L().Fatal("Failed to query GitHub API for issues total", zap.Error(err))
 	}
 	defer func() {
 		if cerr := resp.Body.Close(); cerr != nil {
@@ -75,7 +74,7 @@ func getIssuesTotal(username string) (int, error) {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("github API returned status %d for issues total", resp.StatusCode)
+		zap.L().Fatal("GitHub API returned non-200 status for issues total", zap.Int("status", resp.StatusCode))
 	}
 
 	var result struct {
@@ -83,10 +82,10 @@ func getIssuesTotal(username string) (int, error) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return 0, fmt.Errorf("failed to decode issues total response: %w", err)
+		zap.L().Fatal("Failed to decode issues total response", zap.Error(err))
 	}
 
-	fmt.Printf("Total issues by %s: %d\n", username, result.TotalCount)
+	zap.L().Debug("Total issues by user", zap.String("username", username), zap.Int("total_count", result.TotalCount))
 	return result.TotalCount, nil
 }
 
@@ -112,7 +111,7 @@ func getGitHubUserInfo() (*GitHubUserInfo, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to make request: %w", err)
+		zap.L().Fatal("Failed to make request for GitHub user info", zap.Error(err))
 	}
 	defer func() {
 		if cerr := resp.Body.Close(); cerr != nil {
@@ -121,13 +120,13 @@ func getGitHubUserInfo() (*GitHubUserInfo, error) {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		zap.L().Error("GitHub API returned non-200 status", zap.Int("status", resp.StatusCode))
 	}
 
 	var user GitHubUserInfo
 
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+		zap.L().Fatal("Failed to decode GitHub user info", zap.Error(err))
 	}
 	return &user, nil
 }
@@ -153,7 +152,7 @@ func getCommitsTotal(username string) (int, error) {
 	}
 
 	if err := QueryGitHubQLAPI(userQuery, userVariables, &userResult); err != nil {
-		return 0, fmt.Errorf("failed to get user ID: %w", err)
+		zap.L().Fatal("Failed to query user ID", zap.Error(err))
 	}
 
 	userID := userResult.User.ID
@@ -243,20 +242,9 @@ type ActivityStats struct {
 }
 
 func getActivityStats(username string) (*ActivityStats, error) {
-	totalCommits, err := getCommitsTotal(username)
-	if err != nil {
-		zap.L().Fatal("Failed to get total commits", zap.Error(err))
-	}
-
-	totalIssues, err := getIssuesTotal(username)
-	if err != nil {
-		zap.L().Fatal("Failed to get total issues", zap.Error(err))
-	}
-
-	totalPullRequests, err := getPullRequestTotal(username)
-	if err != nil {
-		zap.L().Fatal("Failed to get total PRs", zap.Error(err))
-	}
+	totalCommits, _ := getCommitsTotal(username)
+	totalIssues, _ := getIssuesTotal(username)
+	totalPullRequests, _ := getPullRequestTotal(username)
 
 	return &ActivityStats{
 		TotalCommits:      totalCommits,
