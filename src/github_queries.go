@@ -83,7 +83,7 @@ func getUserId(userName string) string {
 // getCommitsTotal fetches the total number of commits made by a user to default branches across all repositories
 func getCommitsTotal(userName, userId string) int {
 	zap.L().
-		Debug("Fetching total commits", zap.String("username", userName), zap.String("userId", userId))
+		Debug("Fetching total commits")
 	// Now query repositories and commits using the user ID
 	query := `
 	query($login: String!, $userId: ID!, $after: String) {
@@ -159,7 +159,7 @@ func getCommitsTotal(userName, userId string) int {
 	}
 
 	zap.L().
-		Debug("Total commits by user", zap.String("username", userName), zap.Int("total_commits", totalCommits))
+		Debug("Total commits by user", zap.Int("total_commits", totalCommits))
 	return totalCommits
 }
 
@@ -171,9 +171,9 @@ type GitHubTotals struct {
 
 func getGitHubTotals(userName, userId string) *GitHubTotals {
 	zap.L().
-		Debug("Fetching GitHub totals", zap.String("username", userName), zap.String("userId", userId))
+		Debug("Fetching GitHub totals")
 	query := `
-	query($login: String!, $userId: ID!) {
+	query($login: String!) {
 		user(login: $login) {
 			issues {
 				totalCount
@@ -188,8 +188,7 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 	}`
 
 	variables := map[string]interface{}{
-		"login":  userName,
-		"userId": userId,
+		"login": userName,
 	}
 
 	var result struct {
@@ -210,11 +209,14 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 		zap.L().Fatal("Failed to get GitHub totals", zap.Error(err))
 	}
 
-	return &GitHubTotals{
+	response := &GitHubTotals{
 		TotalPullRequests:  result.User.PullRequests.TotalCount,
 		TotalIssues:        result.User.Issues.TotalCount,
 		TotalIssueComments: result.User.IssueComments.TotalCount,
 	}
+	zap.L().
+		Debug("GitHub totals fetched", zap.Int("total_pull_requests", response.TotalPullRequests), zap.Int("total_issues", response.TotalIssues), zap.Int("total_issue_comments", response.TotalIssueComments))
+	return response
 }
 
 type ActivityStats struct {
