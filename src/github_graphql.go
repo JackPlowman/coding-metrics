@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -56,7 +58,11 @@ func NewGitHubGraphQLClient(token string) *GitHubGraphQLClient {
 }
 
 // Query executes a GraphQL query against the GitHub API
-func (c *GitHubGraphQLClient) Query(query string, variables map[string]interface{}, result interface{}) error {
+func (c *GitHubGraphQLClient) Query(
+	query string,
+	variables map[string]interface{},
+	result interface{},
+) error {
 	requestBody := GitHubGraphQLRequest{
 		Query:     query,
 		Variables: variables,
@@ -78,13 +84,21 @@ func (c *GitHubGraphQLClient) Query(query string, variables map[string]interface
 
 	resp, err := c.Client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to execute request: %w", err)
+		zap.L().Fatal("Failed to query GitHub GraphQL API", zap.Error(err))
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			zap.L().Fatal("Failed to close response body", zap.Error(cerr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("GitHub API returned non-200 status code %d: %s", resp.StatusCode, string(body))
+		return fmt.Errorf(
+			"GitHub API returned non-200 status code %d: %s",
+			resp.StatusCode,
+			string(body),
+		)
 	}
 
 	var graphqlResp GitHubGraphQLResponse

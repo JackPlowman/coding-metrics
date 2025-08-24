@@ -35,7 +35,13 @@ func commitSVGChanges(file *os.File) {
 	gh := github.NewClient(tc)
 
 	// Get current file SHA (omit if creating a new file)
-	fileContent, _, _, _ := gh.Repositories.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{Ref: branch})
+	fileContent, _, _, _ := gh.Repositories.GetContents(
+		ctx,
+		owner,
+		repo,
+		path,
+		&github.RepositoryContentGetOptions{Ref: branch},
+	)
 	var sha *string
 	if fileContent != nil {
 		sha = fileContent.SHA

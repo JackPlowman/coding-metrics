@@ -25,7 +25,6 @@ func initLogger() (*zap.Logger, error) {
 
 // main is the entry point for the application.
 func main() {
-
 	svgElements := []svg.Element{}
 	svgElements = append(svgElements, generateSVGContent()...)
 	svg := createSVG(svgElements)

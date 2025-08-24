@@ -8,19 +8,14 @@ export SRC_RECURSIVE := "./src/..."
 run:
     go run ${SRC_DIR}
 
-fmt:
-    go fmt ${SRC_DIR}
+alias fmt := lint-fix
+alias fmt-check := lint
 
-fmt-check:
-    @if [ -z "$(gofmt -l .)" ]; \
-        then echo "OK: all Go files are go formatted."; \
-    else \
-        echo "Not go formatted:"; \
-        gofmt -l .; \
-        echo "Diff:"; \
-        gofmt -d .; \
-        exit 1; \
-    fi
+lint:
+    golangci-lint run ${SRC_RECURSIVE}
+
+lint-fix:
+    golangci-lint run --fix ${SRC_RECURSIVE}
 
 vulncheck:
     govulncheck ${SRC_RECURSIVE}
