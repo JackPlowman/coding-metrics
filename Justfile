@@ -8,7 +8,6 @@ export SRC_RECURSIVE := "./src/..."
 run:
     go run ${SRC_DIR}
 
-
 alias fmt := lint-fix
 alias fmt-check := lint
 
