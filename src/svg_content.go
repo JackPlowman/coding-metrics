@@ -55,7 +55,6 @@ func generateProfileSection() svg.Element {
 	)
 }
 
-
 func generateStatsRow() svg.Element {
 	activityStatsX := 20.0
 	communityStatsX := 250.0
@@ -181,7 +180,7 @@ func generateContributionGraph(headerStyle svg.String, textStyle svg.String) svg
 	// Add contribution graph header
 	headerElements := []svg.Element{
 		svg.Text(svg.CharData("📚 Contributions")).XY(630, 115, svg.Px).Fill(svg.String(accentBlue)).
-		Style(headerStyle),
+			Style(headerStyle),
 		svg.Text(svg.CharData("Contributed to 52 repositories")).XY(630, 210, svg.Px).Fill(svg.String(textSecondary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
 	}
