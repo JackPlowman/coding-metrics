@@ -38,13 +38,14 @@ func generateSVGContent() []svg.Element {
 
 func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 	return svg.G().AppendChildren(
-		// Profile avatar (image) - smaller and positioned like target
+		// Profile avatar (image) - smaller and positioned like target, with rounded corners
 		svg.Image().
 			Href(svg.String(userInfo.AvatarURL)).
 			Width(svg.Px(24)).
 			Height(svg.Px(24)).
 			X(svg.Px(18)).
-			Y(svg.Px(28)),
+			Y(svg.Px(28)).
+			RX(svg.Px(6)), // Rounded corners
 
 		// Name - positioned next to avatar
 		svg.Text(svg.CharData("Jack Plowman")).XY(50, 45, svg.Px).Fill(svg.String(textPrimary)).
