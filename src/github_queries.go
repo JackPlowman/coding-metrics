@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -11,86 +10,6 @@ import (
 )
 
 const bearerPrefix = "Bearer "
-
-// getPullRequestTotal fetches the total number of pull requests for a given user
-func getPullRequestTotal(username string) (int, error) {
-	url := fmt.Sprintf("https://api.github.com/search/issues?q=author:%s+type:pr", username)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		zap.L().Fatal("Failed to create request for pull request total", zap.Error(err))
-	}
-	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		zap.L().Fatal("Failed to query GitHub API for pull request total", zap.Error(err))
-	}
-	defer func() {
-		if cerr := resp.Body.Close(); cerr != nil {
-			zap.L().Fatal("failed to close response body", zap.Error(cerr))
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf(
-			"github API returned status %d for pull request total",
-			resp.StatusCode,
-		)
-	}
-
-	var result struct {
-		TotalCount int `json:"total_count"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		zap.L().Fatal("Failed to decode pull request total response", zap.Error(err))
-	}
-
-	zap.L().
-		Debug("Total pull requests by user", zap.String("username", username), zap.Int("total_count", result.TotalCount))
-	return result.TotalCount, nil
-}
-
-// getIssuesTotal fetches the total number of issues for a given user
-func getIssuesTotal(username string) (int, error) {
-	url := fmt.Sprintf("https://api.github.com/search/issues?q=author:%s+type:issue", username)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		zap.L().Fatal("Failed to create request for issues total", zap.Error(err))
-	}
-	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		zap.L().Fatal("Failed to query GitHub API for issues total", zap.Error(err))
-	}
-	defer func() {
-		if cerr := resp.Body.Close(); cerr != nil {
-			zap.L().Fatal("failed to close response body", zap.Error(cerr))
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		zap.L().
-			Fatal("GitHub API returned non-200 status for issues total", zap.Int("status", resp.StatusCode))
-	}
-
-	var result struct {
-		TotalCount int `json:"total_count"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		zap.L().Fatal("Failed to decode issues total response", zap.Error(err))
-	}
-
-	zap.L().
-		Debug("Total issues by user", zap.String("username", username), zap.Int("total_count", result.TotalCount))
-	return result.TotalCount, nil
-}
 
 // getGitHubUserInfo fetches the user's information from GitHub REST API
 type GitHubUserInfo struct {
@@ -105,10 +24,10 @@ type GitHubUserInfo struct {
 	Type         string    `json:"type"`
 }
 
-func getGitHubUserInfo() (*GitHubUserInfo, error) {
+func getGitHubUserInfo() *GitHubUserInfo {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+		zap.L().Fatal("Failed to create request for GitHub user info", zap.Error(err))
 	}
 	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
 
@@ -132,11 +51,12 @@ func getGitHubUserInfo() (*GitHubUserInfo, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		zap.L().Fatal("Failed to decode GitHub user info", zap.Error(err))
 	}
-	return &user, nil
+	return &user
 }
 
 // getCommitsTotal fetches the total number of commits made by a user to default branches across all repositories
-func getCommitsTotal(userName string, userId int) (int, error) {
+func getCommitsTotal(userName string, userId int) int {
+	zap.L().Debug("Fetching total commits", zap.String("username", userName), zap.Int("userId", userId))
 	// Now query repositories and commits using the user ID
 	query := `
 	query($login: String!, $userId: ID!, $after: String) {
@@ -198,7 +118,7 @@ func getCommitsTotal(userName string, userId int) (int, error) {
 		}
 
 		if err := QueryGitHubQLAPI(query, variables, &result); err != nil {
-			return 0, fmt.Errorf("failed to query commits: %w", err)
+			zap.L().Fatal("Failed to get commits total", zap.Error(err))
 		}
 
 		for _, repo := range result.User.Repositories.Nodes {
@@ -211,24 +131,79 @@ func getCommitsTotal(userName string, userId int) (int, error) {
 		cursor = result.User.Repositories.PageInfo.EndCursor
 	}
 
-	fmt.Printf("Total commits by %s: %d\n", userName, totalCommits)
-	return totalCommits, nil
+	zap.L().
+		Debug("Total commits by user", zap.String("username", userName), zap.Int("total_commits", totalCommits))
+	return totalCommits
+}
+
+type GitHubTotals struct {
+	TotalPullRequests  int
+	TotalIssues        int
+	TotalIssueComments int
+}
+
+func getGitHubTotals(userName string, userId int) *GitHubTotals {
+	zap.L().Debug("Fetching GitHub totals", zap.String("username", userName), zap.Int("userId", userId))
+	query := `
+	query($login: String!, $userId: ID!) {
+		user(login: $login) {
+			issues {
+				totalCount
+			}
+			pullRequests {
+				totalCount
+			}
+			issueComments {
+				totalCount
+			}
+		}
+	}`
+
+	variables := map[string]interface{}{
+		"login":  userName,
+		"userId": userId,
+	}
+
+	var result struct {
+		User struct {
+			Issues struct {
+				TotalCount int `json:"totalCount"`
+			} `json:"issues"`
+			PullRequests struct {
+				TotalCount int `json:"totalCount"`
+			} `json:"pullRequests"`
+			IssueComments struct {
+				TotalCount int `json:"totalCount"`
+			} `json:"issueComments"`
+		} `json:"user"`
+	}
+
+	if err := QueryGitHubQLAPI(query, variables, &result); err != nil {
+		zap.L().Error("Failed to get GitHub totals", zap.Error(err))
+	}
+
+	return &GitHubTotals{
+		TotalPullRequests:  result.User.PullRequests.TotalCount,
+		TotalIssues:        result.User.Issues.TotalCount,
+		TotalIssueComments: result.User.IssueComments.TotalCount,
+	}
 }
 
 type ActivityStats struct {
-	TotalCommits      int
-	TotalIssues       int
-	TotalPullRequests int
+	TotalCommits       int
+	TotalIssues        int
+	TotalPullRequests  int
+	TotalIssueComments int
 }
 
-func getActivityStats(userName string, userId int) (*ActivityStats, error) {
-	totalCommits, _ := getCommitsTotal(userName, userId)
-	totalIssues, _ := getIssuesTotal(userName)
-	totalPullRequests, _ := getPullRequestTotal(userName)
+func getActivityStats(userName string, userId int) *ActivityStats {
+	totals := getGitHubTotals(userName, userId)
+	totalCommits := getCommitsTotal(userName, userId)
 
 	return &ActivityStats{
-		TotalCommits:      totalCommits,
-		TotalIssues:       totalIssues,
-		TotalPullRequests: totalPullRequests,
-	}, nil
+		TotalCommits:       totalCommits,
+		TotalPullRequests:  totals.TotalPullRequests,
+		TotalIssues:        totals.TotalIssues,
+		TotalIssueComments: totals.TotalIssueComments,
+	}
 }
