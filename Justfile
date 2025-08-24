@@ -2,8 +2,8 @@
 # General
 # ------------------------------------------------------------------------------
 
-export SRC_DIR:="./src"
-export SRC_RECURSIVE:="./src/..."
+export SRC_DIR := "./src"
+export SRC_RECURSIVE := "./src/..."
 
 run:
     go run ${SRC_DIR}
