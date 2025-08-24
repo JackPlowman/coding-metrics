@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/twpayne/go-svg"
 	"time"
-	"fmt"
 )
 
 var title = "Jack Plowman - GitHub Stats"
