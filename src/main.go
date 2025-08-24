@@ -104,11 +104,13 @@ func generateContributionGraph() svg.Element {
 	year, month := now.Year(), now.Month()
 	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
 	nextMonth := firstOfMonth.AddDate(0, 1, 0)
-	daysInMonth := int(nextMonth.Sub(firstOfMonth).Hours()/24)
+	daysInMonth := int(nextMonth.Sub(firstOfMonth).Hours() / 24)
+
+	daysPerRow := 12
 
 	for day := 0; day < daysInMonth; day++ {
-		x := startX + (day%7)*(squareSize+squareGap)
-		y := startY + (day/7)*(squareSize+squareGap)
+		x := startX + (day%daysPerRow)*(squareSize+squareGap)
+		y := startY + (day/daysPerRow)*(squareSize+squareGap)
 
 		// Vary the green intensity to simulate real contribution data
 		var color string
@@ -133,10 +135,10 @@ func generateContributionGraph() svg.Element {
 			RX(svg.Px(2)))
 	}
 
-	// Draw empty squares for the rest of the month (up to 35 squares for 5 weeks)
-	for i := daysInMonth; i < 35; i++ {
-		x := startX + (i%7)*(squareSize+squareGap)
-		y := startY + (i/7)*(squareSize+squareGap)
+	// Draw empty squares for the rest of the grid (up to 36 squares for 3 rows of 12)
+	for i := daysInMonth; i < 36; i++ {
+		x := startX + (i%daysPerRow)*(squareSize+squareGap)
+		y := startY + (i/daysPerRow)*(squareSize+squareGap)
 
 		squares = append(squares, svg.Rect().
 			Fill(svg.String("#ffffff")).
