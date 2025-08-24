@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-
+	"time"
 	"github.com/twpayne/go-svg"
 	"go.uber.org/zap"
 )
@@ -114,13 +114,19 @@ func generateContributionGraph() svg.Element {
 	squares := []svg.Element{}
 
 	// Generate contribution squares pattern
-	daysInMonth := 31
 	squareSize := 10
 	squareGap := 2
 	startX := 530
 	startY := 50
 
-	for day := 0; day < 31; day++ {
+	// Determine days in the current month
+	now := time.Now()
+	year, month := now.Year(), now.Month()
+	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+	nextMonth := firstOfMonth.AddDate(0, 1, 0)
+	daysInMonth := int(nextMonth.Sub(firstOfMonth).Hours()/24)
+
+	for day := 0; day < daysInMonth; day++ {
 		x := startX + (day%7)*(squareSize+squareGap)
 		y := startY + (day/7)*(squareSize+squareGap)
 
