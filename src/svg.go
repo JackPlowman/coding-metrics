@@ -10,7 +10,7 @@ import (
 )
 
 func createSVG(svgChildren []svg.Element) *svg.SVGElement {
-	return svg.New().WidthHeight(800, 380, svg.Px).ViewBox(0, 0, 800, 380).AppendChildren(
+	return svg.New().WidthHeight(1000, 380, svg.Px).ViewBox(0, 0, 1000, 380).AppendChildren(
 		svgChildren...,
 	)
 }
