@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -82,9 +84,13 @@ func (c *GitHubGraphQLClient) Query(
 
 	resp, err := c.Client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to execute request: %w", err)
+		zap.L().Fatal("Failed to query GitHub GraphQL API", zap.Error(err))
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			zap.L().Fatal("Failed to close response body", zap.Error(cerr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)

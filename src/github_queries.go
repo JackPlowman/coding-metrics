@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 const bearerPrefix = "Bearer "
@@ -16,20 +18,24 @@ func getPullRequestTotal(username string) (int, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to create request for pull request total: %w", err)
+		return 0, fmt.Errorf("failed to create request for pull request total: %w", err)
 	}
 	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to query GitHub API for pull request total: %w", err)
+		return 0, fmt.Errorf("failed to query GitHub API for pull request total: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			zap.L().Fatal("failed to close response body", zap.Error(cerr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return 0, fmt.Errorf(
-			"GitHub API returned status %d for pull request total",
+			"github API returned status %d for pull request total",
 			resp.StatusCode,
 		)
 	}
@@ -39,7 +45,7 @@ func getPullRequestTotal(username string) (int, error) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return 0, fmt.Errorf("Failed to decode pull request total response: %w", err)
+		return 0, fmt.Errorf("failed to decode pull request total response: %w", err)
 	}
 
 	fmt.Printf("Total pull requests by %s: %d\n", username, result.TotalCount)
@@ -60,12 +66,16 @@ func getIssuesTotal(username string) (int, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to query GitHub API for issues total: %w", err)
+		return 0, fmt.Errorf("failed to query GitHub API for issues total: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			zap.L().Fatal("failed to close response body", zap.Error(cerr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("GitHub API returned status %d for issues total	", resp.StatusCode)
+		return 0, fmt.Errorf("github API returned status %d for issues total", resp.StatusCode)
 	}
 
 	var result struct {
@@ -73,7 +83,7 @@ func getIssuesTotal(username string) (int, error) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return 0, fmt.Errorf("Failed to decode issues total response: %w", err)
+		return 0, fmt.Errorf("failed to decode issues total response: %w", err)
 	}
 
 	fmt.Printf("Total issues by %s: %d\n", username, result.TotalCount)
@@ -104,7 +114,11 @@ func getGitHubUserInfo() (*GitHubUserInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			zap.L().Fatal("Failed to close response body", zap.Error(cerr))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)

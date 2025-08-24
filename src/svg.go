@@ -21,14 +21,19 @@ func createSVG(svgChildren []svg.Element) *svg.SVGElement {
 func createLocalFile(
 	svgElement *svg.SVGElement,
 ) *os.File {
-	path := filepath.Join(os.TempDir(), "output.svg")
+	path := filepath.Join(os.TempDir(), filepath.Clean("output.svg"))
+	// #nosec G304 -- The file path is controlled and safe in this context.
 	file, err := os.Create(path)
-	if err == nil {
-		zap.L().Info("Writing SVG to file", zap.String("path", path))
-		svgElement.WriteTo(file)
-		file.Close()
-		return file
+	if err != nil {
+		zap.L().Fatal("Could not create SVG file", zap.Error(err))
 	}
-	zap.L().Fatal("Could not create SVG file", zap.Error(err))
-	return nil
+	zap.L().Info("Writing SVG to file", zap.String("path", path))
+	if _, writeErr := svgElement.WriteTo(file); writeErr != nil {
+		zap.L().Fatal("Failed to write SVG to file", zap.Error(writeErr))
+	}
+	if closeErr := file.Close(); closeErr != nil {
+		zap.L().Error("Failed to close SVG file", zap.Error(closeErr))
+	}
+
+	return file
 }
