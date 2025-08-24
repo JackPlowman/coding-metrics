@@ -2,11 +2,14 @@
 # General
 # ------------------------------------------------------------------------------
 
+export SRC_DIR := "./src"
+export SRC_RECURSIVE := "./src/..."
+
 run:
-    go run ./src
+    go run ${SRC_DIR}
 
 fmt:
-    go fmt ./src
+    go fmt ${SRC_DIR}
 
 fmt-check:
     @if [ -z "$(gofmt -l .)" ]; \
@@ -18,6 +21,9 @@ fmt-check:
         gofmt -d .; \
         exit 1; \
     fi
+
+vulncheck:
+    govulncheck ${SRC_RECURSIVE}
 
 # ------------------------------------------------------------------------------
 # Docker
