@@ -96,7 +96,7 @@ func getIssuesTotal(username string) (int, error) {
 type GitHubUserInfo struct {
 	AvatarURL    string    `json:"avatar_url"`
 	Followers    int       `json:"followers"`
-	Id           int    `json:"id"`
+	Id           int       `json:"id"`
 	JoinedGitHub time.Time `json:"created_at"`
 	Login        string    `json:"login"`
 	Name         string    `json:"name"`
