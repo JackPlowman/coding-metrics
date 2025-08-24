@@ -62,10 +62,10 @@ func generateStatsRow() svg.Element {
 	repositoriesStatsX := 480.0
 	headersRowY := 115.0
 	row1Y := 133.0
-	row2Y := row1Y + 18.0
-	row3Y := row2Y + 18.0
-	row4Y := row3Y + 18.0
-	row5Y := row4Y + 18.0
+	row2Y := row1Y + 16.0
+	row3Y := row2Y + 16.0
+	row4Y := row3Y + 16.0
+	row5Y := row4Y + 16.0
 	headerStyle := svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;")
 	textStyle := svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")
 	return svg.G().AppendChildren(
