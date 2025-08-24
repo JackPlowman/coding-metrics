@@ -235,3 +235,32 @@ func getCommitsTotal(username string) (int, error) {
 	fmt.Printf("Total commits by %s: %d\n", username, totalCommits)
 	return totalCommits, nil
 }
+
+type ActivityStats struct {
+	TotalCommits      int
+	TotalIssues       int
+	TotalPullRequests int
+}
+
+func getActivityStats(username string) (*ActivityStats, error) {
+	totalCommits, err := getCommitsTotal(username)
+	if err != nil {
+		zap.L().Fatal("Failed to get total commits", zap.Error(err))
+	}
+
+	totalIssues, err := getIssuesTotal(username)
+	if err != nil {
+		zap.L().Fatal("Failed to get total issues", zap.Error(err))
+	}
+
+	totalPullRequests, err := getPullRequestTotal(username)
+	if err != nil {
+		zap.L().Fatal("Failed to get total PRs", zap.Error(err))
+	}
+
+	return &ActivityStats{
+		TotalCommits:      totalCommits,
+		TotalIssues:       totalIssues,
+		TotalPullRequests: totalPullRequests,
+	}, nil
+}
