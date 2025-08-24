@@ -24,7 +24,7 @@ var (
 // Generate the main SVG content
 func generateSVGContent() []svg.Element {
 	userInfo, _ := getGitHubUserInfo()
-	activityStats, _ := getActivityStats(userInfo.Login)
+	activityStats, _ := getActivityStats(userInfo.Login, userInfo.Id)
 	elements := []svg.Element{
 		svg.Title(svg.CharData(title)),
 		svg.Desc(svg.CharData(desc)),

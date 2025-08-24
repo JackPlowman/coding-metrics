@@ -96,6 +96,7 @@ func getIssuesTotal(username string) (int, error) {
 type GitHubUserInfo struct {
 	AvatarURL    string    `json:"avatar_url"`
 	Followers    int       `json:"followers"`
+	Id           int       `json:"id"`
 	JoinedGitHub time.Time `json:"created_at"`
 	Login        string    `json:"login"`
 	Name         string    `json:"name"`
@@ -135,31 +136,7 @@ func getGitHubUserInfo() (*GitHubUserInfo, error) {
 }
 
 // getCommitsTotal fetches the total number of commits made by a user to default branches across all repositories
-func getCommitsTotal(username string) (int, error) {
-	// First, get the user's ID
-	userQuery := `
-	query($login: String!) {
-		user(login: $login) {
-			id
-		}
-	}`
-
-	var userResult struct {
-		User struct {
-			ID string `json:"id"`
-		} `json:"user"`
-	}
-
-	userVariables := map[string]interface{}{
-		"login": username,
-	}
-
-	if err := QueryGitHubQLAPI(userQuery, userVariables, &userResult); err != nil {
-		zap.L().Fatal("Failed to query user ID", zap.Error(err))
-	}
-
-	userID := userResult.User.ID
-
+func getCommitsTotal(userName string, userId int) (int, error) {
 	// Now query repositories and commits using the user ID
 	query := `
 	query($login: String!, $userId: ID!, $after: String) {
@@ -186,8 +163,8 @@ func getCommitsTotal(username string) (int, error) {
 	}`
 
 	variables := map[string]interface{}{
-		"login":  username,
-		"userId": userID,
+		"login":  userName,
+		"userId": userId,
 	}
 
 	totalCommits := 0
@@ -234,7 +211,7 @@ func getCommitsTotal(username string) (int, error) {
 		cursor = result.User.Repositories.PageInfo.EndCursor
 	}
 
-	fmt.Printf("Total commits by %s: %d\n", username, totalCommits)
+	fmt.Printf("Total commits by %s: %d\n", userName, totalCommits)
 	return totalCommits, nil
 }
 
@@ -244,10 +221,10 @@ type ActivityStats struct {
 	TotalPullRequests int
 }
 
-func getActivityStats(username string) (*ActivityStats, error) {
-	totalCommits, _ := getCommitsTotal(username)
-	totalIssues, _ := getIssuesTotal(username)
-	totalPullRequests, _ := getPullRequestTotal(username)
+func getActivityStats(userName string, userId int) (*ActivityStats, error) {
+	totalCommits, _ := getCommitsTotal(userName, userId)
+	totalIssues, _ := getIssuesTotal(userName)
+	totalPullRequests, _ := getPullRequestTotal(userName)
 
 	return &ActivityStats{
 		TotalCommits:      totalCommits,
