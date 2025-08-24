@@ -114,33 +114,52 @@ func generateContributionGraph() svg.Element {
 	squares := []svg.Element{}
 
 	// Generate contribution squares pattern
-	for week := 0; week < 13; week++ {
-		for day := 0; day < 7; day++ {
-			x := 530 + week*12
-			y := 50 + day*12
+	daysInMonth := 31
+	squareSize := 10
+	squareGap := 2
+	startX := 530
+	startY := 50
 
-			// Vary the green intensity to simulate real contribution data
-			var color string
-			intensity := (week + day) % 4
-			switch intensity {
-			case 0:
-				color = "#ebedf0" // Light gray (no contributions)
-			case 1:
-				color = greenLight
-			case 2:
-				color = greenMedium
-			case 3:
-				color = greenDark
-			}
+	for day := 0; day < 31; day++ {
+		x := startX + (day%7)*(squareSize+squareGap)
+		y := startY + (day/7)*(squareSize+squareGap)
 
-			squares = append(squares, svg.Rect().
-				Fill(svg.String(color)).
-				Width(svg.Px(10)).
-				Height(svg.Px(10)).
-				X(svg.Px(float64(x))).
-				Y(svg.Px(float64(y))).
-				RX(svg.Px(2)))
+		// Vary the green intensity to simulate real contribution data
+		var color string
+		intensity := day % 4
+		switch intensity {
+		case 0:
+			color = "#ebedf0" // Light gray (no contributions)
+		case 1:
+			color = greenLight
+		case 2:
+			color = greenMedium
+		case 3:
+			color = greenDark
 		}
+
+		squares = append(squares, svg.Rect().
+			Fill(svg.String(color)).
+			Width(svg.Px(float64(squareSize))).
+			Height(svg.Px(float64(squareSize))).
+			X(svg.Px(float64(x))).
+			Y(svg.Px(float64(y))).
+			RX(svg.Px(2)))
+	}
+
+	// Draw empty squares for the rest of the month (up to 35 squares for 5 weeks)
+	for i := daysInMonth; i < 35; i++ {
+		x := startX + (i%7)*(squareSize+squareGap)
+		y := startY + (i/7)*(squareSize+squareGap)
+
+		squares = append(squares, svg.Rect().
+			Fill(svg.String("#ffffff")).
+			Stroke(svg.String("#ebedf0")).
+			Width(svg.Px(float64(squareSize))).
+			Height(svg.Px(float64(squareSize))).
+			X(svg.Px(float64(x))).
+			Y(svg.Px(float64(y))).
+			RX(svg.Px(2)))
 	}
 
 	// Add contribution graph header
