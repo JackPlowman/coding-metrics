@@ -56,8 +56,11 @@ jobs:
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version-file: go.mod
-      - name: Check Go Code Format
-        run: just lint
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.4.0
+          
 
   run-go-dependency-vulnerability-checks:
     name: Run Go Dependency Vulnerability Checks
