@@ -8,7 +8,6 @@ import (
 var title = "Jack Plowman - GitHub Stats"
 var desc = "GitHub profile statistics visualization"
 
-// Colour palette - light theme to match target
 var (
 	textPrimary   = "#24292f" // Dark text for light mode
 	textSecondary = "#656d76" // Secondary gray text
@@ -19,15 +18,16 @@ var (
 )
 
 func generateSVGContent() []svg.Element {
+	userInfo, _ := getGitHubUserInfo()
 	elements := []svg.Element{
 		svg.Title(svg.CharData(title)),
 		svg.Desc(svg.CharData(desc)),
 
 		// Profile section (top left)
-		generateProfileSection(),
+		generateProfileSection(userInfo),
 
 		// Stats sections (middle row)
-		generateStatsRow(),
+		generateStatsRow(userInfo),
 
 		// Languages section (bottom)
 		generateLanguagesSection(),
@@ -36,26 +36,29 @@ func generateSVGContent() []svg.Element {
 	return elements
 }
 
-func generateProfileSection() svg.Element {
+func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 	return svg.G().AppendChildren(
-		// Profile avatar (circle) - smaller and positioned like target
-		svg.Circle().Fill(svg.String(accentBlue)).CXCYR(30, 40, 12, svg.Px),
+	// Use <foreignObject> for rounded avatar if <image> can't have rounded corners
+	svg.Image().
+		Href(svg.String(userInfo.AvatarURL)).
+		Width(svg.Px(24)).Height(svg.Px(24)).
+		X(svg.Px(18)).Y(svg.Px(28)).
 
-		// Name - positioned next to avatar
-		svg.Text(svg.CharData("Jack Plowman")).XY(50, 45, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 18px; font-weight: 600;")),
+	// Name - positioned next to avatar
+	svg.Text(svg.CharData("Jack Plowman")).XY(50, 45, svg.Px).Fill(svg.String(textPrimary)).
+		Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 18px; font-weight: 600;")),
 
-		// Joined info
-		svg.Text(svg.CharData("⏰ Joined GitHub 5 years ago")).XY(20, 70, svg.Px).Fill(svg.String(textSecondary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+	// Joined info
+	svg.Text(svg.CharData("⏰ Joined GitHub 5 years ago")).XY(20, 70, svg.Px).Fill(svg.String(textSecondary)).
+		Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
 
-		// Followed by
-		svg.Text(svg.CharData("👥 Followed by 6 users")).XY(20, 88, svg.Px).Fill(svg.String(textSecondary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+	// Followed by
+	svg.Text(svg.CharData("👥 Followed by 6 users")).XY(20, 88, svg.Px).Fill(svg.String(textSecondary)).
+		Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
 	)
 }
 
-func generateStatsRow() svg.Element {
+func generateStatsRow(userInfo *GitHubUserInfo) svg.Element {
 	activityStatsX := 20.0
 	communityStatsX := 250.0
 	repositoriesStatsX := 480.0
