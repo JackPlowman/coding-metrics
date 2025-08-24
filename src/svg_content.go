@@ -24,7 +24,8 @@ var (
 // Generate the main SVG content
 func generateSVGContent() []svg.Element {
 	userInfo := getGitHubUserInfo()
-	activityStats := getActivityStats(userInfo.Login, userInfo.Id)
+	userId := getUserId(userInfo.Login)
+	activityStats := getActivityStats(userInfo.Login, userId)
 	elements := []svg.Element{
 		svg.Title(svg.CharData(title)),
 		svg.Desc(svg.CharData(desc)),
@@ -98,7 +99,7 @@ func generateStatsRow(userInfo *GitHubUserInfo, activityStats *ActivityStats) sv
 			XY(activityStatsX, row1Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData("📋 122 Pull requests reviewed")).
+		svg.Text(svg.CharData("📋 1111 Pull requests reviewed")).
 			XY(activityStatsX, row2Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
@@ -110,7 +111,7 @@ func generateStatsRow(userInfo *GitHubUserInfo, activityStats *ActivityStats) sv
 			XY(activityStatsX, row4Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData("💬 1872 Issue comments")).
+		svg.Text(svg.CharData("💬 1111 Issue comments")).
 			XY(activityStatsX, row5Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),

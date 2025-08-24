@@ -15,7 +15,6 @@ const bearerPrefix = "Bearer "
 type GitHubUserInfo struct {
 	AvatarURL    string    `json:"avatar_url"`
 	Followers    int       `json:"followers"`
-	Id           int       `json:"id"`
 	JoinedGitHub time.Time `json:"created_at"`
 	Login        string    `json:"login"`
 	Name         string    `json:"name"`
@@ -54,9 +53,37 @@ func getGitHubUserInfo() *GitHubUserInfo {
 	return &user
 }
 
+// GetUserId fetches the user ID for a given username
+func getUserId(userName string) string {
+	zap.L().Debug("Fetching user ID", zap.String("username", userName))
+	userQuery := `
+	query($login: String!) {
+		user(login: $login) {
+			id
+		}
+	}`
+
+	var userResult struct {
+		User struct {
+			ID string `json:"id"`
+		} `json:"user"`
+	}
+
+	userVariables := map[string]interface{}{
+		"login": userName,
+	}
+
+	if err := QueryGitHubQLAPI(userQuery, userVariables, &userResult); err != nil {
+		zap.L().Fatal("Failed to query user ID", zap.Error(err))
+	}
+
+	return userResult.User.ID
+}
+
 // getCommitsTotal fetches the total number of commits made by a user to default branches across all repositories
-func getCommitsTotal(userName string, userId int) int {
-	zap.L().Debug("Fetching total commits", zap.String("username", userName), zap.Int("userId", userId))
+func getCommitsTotal(userName, userId string) int {
+	zap.L().
+		Debug("Fetching total commits", zap.String("username", userName), zap.String("userId", userId))
 	// Now query repositories and commits using the user ID
 	query := `
 	query($login: String!, $userId: ID!, $after: String) {
@@ -142,8 +169,9 @@ type GitHubTotals struct {
 	TotalIssueComments int
 }
 
-func getGitHubTotals(userName string, userId int) *GitHubTotals {
-	zap.L().Debug("Fetching GitHub totals", zap.String("username", userName), zap.Int("userId", userId))
+func getGitHubTotals(userName, userId string) *GitHubTotals {
+	zap.L().
+		Debug("Fetching GitHub totals", zap.String("username", userName), zap.String("userId", userId))
 	query := `
 	query($login: String!, $userId: ID!) {
 		user(login: $login) {
@@ -179,7 +207,7 @@ func getGitHubTotals(userName string, userId int) *GitHubTotals {
 	}
 
 	if err := QueryGitHubQLAPI(query, variables, &result); err != nil {
-		zap.L().Error("Failed to get GitHub totals", zap.Error(err))
+		zap.L().Fatal("Failed to get GitHub totals", zap.Error(err))
 	}
 
 	return &GitHubTotals{
@@ -196,7 +224,7 @@ type ActivityStats struct {
 	TotalIssueComments int
 }
 
-func getActivityStats(userName string, userId int) *ActivityStats {
+func getActivityStats(userName, userId string) *ActivityStats {
 	totals := getGitHubTotals(userName, userId)
 	totalCommits := getCommitsTotal(userName, userId)
 
