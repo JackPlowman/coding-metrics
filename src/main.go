@@ -86,26 +86,6 @@ func generateProfileSection() svg.Element {
 		// Followed by
 		svg.Text(svg.CharData("👥 Followed by 6 users")).XY(20, 88, svg.Px).Fill(svg.String(textSecondary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-
-		// Activity header
-		svg.Text(svg.CharData("📈 Activity")).XY(20, 115, svg.Px).Fill(svg.String(accentBlue)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;")),
-
-		// Activity stats - more compact
-		svg.Text(svg.CharData("○ 5560 Commits")).XY(20, 135, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("📋 122 Pull requests reviewed")).XY(20, 150, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("🔀 4892 Pull requests opened")).XY(20, 165, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("⭕ 1420 Issues opened")).XY(20, 180, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("💬 1872 Issue comments")).XY(20, 195, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-
-		// Languages
-		svg.Text(svg.CharData("🗣️ 21 Languages")).XY(20, 220, svg.Px).Fill(svg.String(accentBlue)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;")),
 	)
 }
 
@@ -178,43 +158,58 @@ func generateContributionGraph() svg.Element {
 }
 
 func generateStatsRow() svg.Element {
+	activityStatsX := 20.0
+	communityStatsX := 250.0
+	repositoriesStatsX := 480.0
+	headersRowY := 115.0
+	row1Y := 135.0
+	row2Y := 150.0
+	row3Y := 165.0
+	row4Y := 180.0
+	row5Y := 195.0
 	return svg.G().AppendChildren(
-		// Community stats section
-		svg.Text(svg.CharData("🐙 Community stats")).XY(20, 265, svg.Px).Fill(svg.String(accentBlue)).
+		// Activity header
+		svg.Text(svg.CharData("📈 Activity")).XY(activityStatsX, headersRowY, svg.Px).Fill(svg.String(accentBlue)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;")),
 
-		svg.Text(svg.CharData("📊 Member of 0 organizations")).XY(250, 265, svg.Px).Fill(svg.String(textPrimary)).
+		// Activity stats - more compact
+		svg.Text(svg.CharData("○ 5560 Commits")).XY(activityStatsX, row1Y, svg.Px).Fill(svg.String(textPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("👤 Following 13 users")).XY(250, 280, svg.Px).Fill(svg.String(textPrimary)).
+		svg.Text(svg.CharData("📋 122 Pull requests reviewed")).XY(activityStatsX, row2Y, svg.Px).Fill(svg.String(textPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("💝 Sponsoring 0 repositories")).XY(250, 295, svg.Px).Fill(svg.String(textPrimary)).
+		svg.Text(svg.CharData("🔀 4892 Pull requests opened")).XY(activityStatsX, row3Y, svg.Px).Fill(svg.String(textPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("⭐ Starred 136 repositories")).XY(450, 265, svg.Px).Fill(svg.String(textPrimary)).
+		svg.Text(svg.CharData("⭕ 1420 Issues opened")).XY(activityStatsX, row4Y, svg.Px).Fill(svg.String(textPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("👀 Watching 42 repositories")).XY(450, 280, svg.Px).Fill(svg.String(textPrimary)).
+		svg.Text(svg.CharData("💬 1872 Issue comments")).XY(activityStatsX, row5Y, svg.Px).Fill(svg.String(textPrimary)).
+			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+
+		// Community stats section
+		svg.Text(svg.CharData("🐙 Community stats")).XY(communityStatsX, headersRowY, svg.Px).Fill(svg.String(accentBlue)).
+			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;")),
+
+		svg.Text(svg.CharData("📊 Member of 0 organizations")).XY(communityStatsX, row1Y, svg.Px).Fill(svg.String(textPrimary)).
+			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+		svg.Text(svg.CharData("👤 Following 13 users")).XY(communityStatsX, row2Y, svg.Px).Fill(svg.String(textPrimary)).
+			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+		svg.Text(svg.CharData("💝 Sponsoring 0 repositories")).XY(communityStatsX, row3Y, svg.Px).Fill(svg.String(textPrimary)).
+			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+		svg.Text(svg.CharData("⭐ Starred 136 repositories")).XY(communityStatsX, row4Y, svg.Px).Fill(svg.String(textPrimary)).
+			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+		svg.Text(svg.CharData("👀 Watching 42 repositories")).XY(communityStatsX, row5Y, svg.Px).Fill(svg.String(textPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
 
 		// Repository stats
-		svg.Text(svg.CharData("📚 56 Repositories")).XY(530, 180, svg.Px).Fill(svg.String(accentBlue)).
+		svg.Text(svg.CharData("📚 56 Repositories")).XY(repositoriesStatsX, headersRowY, svg.Px).Fill(svg.String(accentBlue)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;")),
 
-		svg.Text(svg.CharData("⚖️ Prefers MIT license")).XY(530, 200, svg.Px).Fill(svg.String(textPrimary)).
+		svg.Text(svg.CharData("💖 0 Sponsors")).XY(repositoriesStatsX, row1Y, svg.Px).Fill(svg.String(textPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("🏷️ 77 Releases")).XY(530, 215, svg.Px).Fill(svg.String(textPrimary)).
+		svg.Text(svg.CharData("⭐ 9 Stargazers")).XY(repositoriesStatsX, row2Y, svg.Px).Fill(svg.String(textPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("📦 3 Packages")).XY(530, 230, svg.Px).Fill(svg.String(textPrimary)).
+		svg.Text(svg.CharData("🍴 9 Forkers")).XY(repositoriesStatsX, row3Y, svg.Px).Fill(svg.String(textPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("💾 69.1 MB used")).XY(530, 245, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-
-		// Right column stats
-		svg.Text(svg.CharData("💖 0 Sponsors")).XY(680, 180, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("⭐ 9 Stargazers")).XY(680, 195, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("🍴 9 Forkers")).XY(680, 210, svg.Px).Fill(svg.String(textPrimary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
-		svg.Text(svg.CharData("👁️ 38 Watchers")).XY(680, 225, svg.Px).Fill(svg.String(textPrimary)).
+		svg.Text(svg.CharData("👁️ 38 Watchers")).XY(repositoriesStatsX, row4Y, svg.Px).Fill(svg.String(textPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
 	)
 }
@@ -237,8 +232,11 @@ func generateLanguagesSection() svg.Element {
 
 	elements := []svg.Element{
 		// Most used languages header
-		svg.Text(svg.CharData("Most used languages")).XY(20, 335, svg.Px).Fill(svg.String(accentBlue)).
+		// Languages
+		svg.Text(svg.CharData("🗣️ 21 Languages")).XY(20, 220, svg.Px).Fill(svg.String(accentBlue)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;")),
+		svg.Text(svg.CharData("Most used languages")).XY(100, 335, svg.Px).Fill(svg.String(accentBlue)).
+			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 12px; font-weight: 600;")),
 	}
 
 	// Single continuous language bar (like in the target)
