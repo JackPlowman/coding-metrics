@@ -56,7 +56,11 @@ func NewGitHubGraphQLClient(token string) *GitHubGraphQLClient {
 }
 
 // Query executes a GraphQL query against the GitHub API
-func (c *GitHubGraphQLClient) Query(query string, variables map[string]interface{}, result interface{}) error {
+func (c *GitHubGraphQLClient) Query(
+	query string,
+	variables map[string]interface{},
+	result interface{},
+) error {
 	requestBody := GitHubGraphQLRequest{
 		Query:     query,
 		Variables: variables,
@@ -84,7 +88,11 @@ func (c *GitHubGraphQLClient) Query(query string, variables map[string]interface
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("GitHub API returned non-200 status code %d: %s", resp.StatusCode, string(body))
+		return fmt.Errorf(
+			"GitHub API returned non-200 status code %d: %s",
+			resp.StatusCode,
+			string(body),
+		)
 	}
 
 	var graphqlResp GitHubGraphQLResponse

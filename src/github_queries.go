@@ -28,7 +28,10 @@ func getPullRequestTotal(username string) (int, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("GitHub API returned status %d for pull request total", resp.StatusCode)
+		return 0, fmt.Errorf(
+			"GitHub API returned status %d for pull request total",
+			resp.StatusCode,
+		)
 	}
 
 	var result struct {
