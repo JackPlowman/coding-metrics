@@ -18,6 +18,7 @@ var (
 	greenDark     = "#216e39" // Dark green
 )
 
+// Generate the main SVG content
 func generateSVGContent() []svg.Element {
 	userInfo, _ := getGitHubUserInfo()
 	elements := []svg.Element{
@@ -37,6 +38,7 @@ func generateSVGContent() []svg.Element {
 	return elements
 }
 
+// Generate profile section of svg
 func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 	yearsAgo := time.Since(userInfo.JoinedGitHub).Hours() / 24 / 365
 	return svg.G().AppendChildren(
