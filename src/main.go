@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/twpayne/go-svg"
 	"go.uber.org/zap"
 )
 
@@ -24,9 +25,10 @@ func initLogger() (*zap.Logger, error) {
 
 // main is the entry point for the application.
 func main() {
-	file := createLocalFile()
-	svgCanvas := setupSVG(file)
-	generateSVGContent(svgCanvas)
-	completeSVG(svgCanvas)
+
+	svgElements := []svg.Element{}
+	svgElements = append(svgElements, generateSVGContent()...)
+	svg := createSVG(svgElements)
+	file := createLocalFile(svg)
 	commitSVGChanges(file)
 }
