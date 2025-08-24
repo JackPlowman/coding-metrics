@@ -48,7 +48,8 @@ func getPullRequestTotal(username string) (int, error) {
 		zap.L().Fatal("Failed to decode pull request total response", zap.Error(err))
 	}
 
-	zap.L().Debug("Total pull requests by user", zap.String("username", username), zap.Int("total_count", result.TotalCount))
+	zap.L().
+		Debug("Total pull requests by user", zap.String("username", username), zap.Int("total_count", result.TotalCount))
 	return result.TotalCount, nil
 }
 
@@ -74,7 +75,8 @@ func getIssuesTotal(username string) (int, error) {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		zap.L().Fatal("GitHub API returned non-200 status for issues total", zap.Int("status", resp.StatusCode))
+		zap.L().
+			Fatal("GitHub API returned non-200 status for issues total", zap.Int("status", resp.StatusCode))
 	}
 
 	var result struct {
@@ -85,7 +87,8 @@ func getIssuesTotal(username string) (int, error) {
 		zap.L().Fatal("Failed to decode issues total response", zap.Error(err))
 	}
 
-	zap.L().Debug("Total issues by user", zap.String("username", username), zap.Int("total_count", result.TotalCount))
+	zap.L().
+		Debug("Total issues by user", zap.String("username", username), zap.Int("total_count", result.TotalCount))
 	return result.TotalCount, nil
 }
 
