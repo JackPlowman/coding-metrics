@@ -36,7 +36,7 @@ func main() {
 var title = "Jack Plowman - GitHub Stats"
 var desc = "GitHub profile statistics visualization"
 
-// Color palette - light theme to match target
+// Colour palette - light theme to match target
 var (
 	textPrimary   = "#24292f"    // Dark text for light mode
 	textSecondary = "#656d76"    // Secondary gray text
@@ -50,9 +50,6 @@ func generateSVGContent() []svg.Element {
 	elements := []svg.Element{
 		svg.Title(svg.CharData(title)),
 		svg.Desc(svg.CharData(desc)),
-
-		// Main container background
-		svg.Rect().Fill(svg.String("#ffffff")).Width(svg.Px(800)).Height(svg.Px(380)).X(svg.Px(0)).Y(svg.Px(0)),
 
 		// Profile section (top left)
 		generateProfileSection(),
@@ -106,28 +103,28 @@ func generateContributionGraph() svg.Element {
 	nextMonth := firstOfMonth.AddDate(0, 1, 0)
 	daysInMonth := int(nextMonth.Sub(firstOfMonth).Hours() / 24)
 
-	daysPerRow := 12
+	daysPerRow := 7
 
 	for day := 0; day < daysInMonth; day++ {
 		x := startX + (day%daysPerRow)*(squareSize+squareGap)
 		y := startY + (day/daysPerRow)*(squareSize+squareGap)
 
 		// Vary the green intensity to simulate real contribution data
-		var color string
+		var colour string
 		intensity := day % 4
 		switch intensity {
 		case 0:
-			color = "#ebedf0" // Light gray (no contributions)
+			colour = "#ebedf0" // Light grey (no contributions)
 		case 1:
-			color = greenLight
+			colour = greenLight
 		case 2:
-			color = greenMedium
+			colour = greenMedium
 		case 3:
-			color = greenDark
+			colour = greenDark
 		}
 
 		squares = append(squares, svg.Rect().
-			Fill(svg.String(color)).
+			Fill(svg.String(colour)).
 			Width(svg.Px(float64(squareSize))).
 			Height(svg.Px(float64(squareSize))).
 			X(svg.Px(float64(x))).
@@ -219,7 +216,7 @@ func generateStatsRow() svg.Element {
 func generateLanguagesSection() svg.Element {
 	languages := []struct {
 		name  string
-		color string
+		colour string
 		width int
 	}{
 		{"Python", "#3776ab", 120},
@@ -246,7 +243,7 @@ func generateLanguagesSection() svg.Element {
 	for _, lang := range languages {
 		// Language bar segment
 		elements = append(elements, svg.Rect().
-			Fill(svg.String(lang.color)).
+			Fill(svg.String(lang.colour)).
 			Width(svg.Px(float64(lang.width))).
 			Height(svg.Px(8)).
 			X(svg.Px(float64(currentX))).
@@ -258,9 +255,9 @@ func generateLanguagesSection() svg.Element {
 	// Language labels below the bar
 	currentX = 20
 	for _, lang := range languages {
-		// Language color dot
+		// Language colour dot
 		elements = append(elements, svg.Circle().
-			Fill(svg.String(lang.color)).
+			Fill(svg.String(lang.colour)).
 			CXCYR(float64(currentX+8), 370, 4, svg.Px))
 
 		// Language label
