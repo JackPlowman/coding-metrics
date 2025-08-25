@@ -121,7 +121,7 @@ func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsS
 			XY(communityStatsX, row1Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData("👤 Following 13 users")).
+		svg.Text(svg.CharData(fmt.Sprintf("👤 Following %d users", userInfo.Following))).
 			XY(communityStatsX, row2Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),

@@ -15,6 +15,7 @@ const bearerPrefix = "Bearer "
 type GitHubUserInfo struct {
 	AvatarURL    string    `json:"avatar_url"`
 	Followers    int       `json:"followers"`
+	Following    int       `json:"following"`
 	JoinedGitHub time.Time `json:"created_at"`
 	Login        string    `json:"login"`
 	Name         string    `json:"name"`
