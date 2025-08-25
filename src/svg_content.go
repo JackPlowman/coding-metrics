@@ -25,7 +25,7 @@ var (
 func generateSVGContent() []svg.Element {
 	userInfo := getGitHubUserInfo()
 	userId := getUserId(userInfo.Login)
-	activityStats := getActivityStats(userInfo.Login, userId)
+	githubTotalsStats := getGitHubTotalsStats(userInfo.Login, userId)
 	elements := []svg.Element{
 		svg.Title(svg.CharData(title)),
 		svg.Desc(svg.CharData(desc)),
@@ -34,7 +34,7 @@ func generateSVGContent() []svg.Element {
 		generateProfileSection(userInfo),
 
 		// Stats sections (middle row)
-		generateStatsRow(userInfo, activityStats),
+		generateStatsRow(userInfo, githubTotalsStats),
 
 		// Languages section (bottom)
 		generateLanguagesSection(),
@@ -72,7 +72,7 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 }
 
 // Generate stats row of svg
-func generateStatsRow(userInfo *GitHubUserInfo, activityStats *ActivityStats) svg.Element {
+func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsStats) svg.Element {
 	activityStatsX := 20.0
 	communityStatsX := 250.0
 	repositoriesStatsX := 480.0
@@ -94,19 +94,19 @@ func generateStatsRow(userInfo *GitHubUserInfo, activityStats *ActivityStats) sv
 			Fill(svg.String(accentBlue)).
 			Style(headerStyle),
 
-		svg.Text(svg.CharData(fmt.Sprintf("○ %d Commits", activityStats.TotalCommits))).
+		svg.Text(svg.CharData(fmt.Sprintf("○ %d Commits", githubTotalsStats.TotalCommits))).
 			XY(activityStatsX, row1Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData(fmt.Sprintf("📋 %d Pull requests reviewed", activityStats.TotalPullRequestReviews))).
+		svg.Text(svg.CharData(fmt.Sprintf("📋 %d Pull requests reviewed", githubTotalsStats.TotalPullRequestReviews))).
 			XY(activityStatsX, row2Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData(fmt.Sprintf("🔀 %d Pull requests opened", activityStats.TotalPullRequests))).
+		svg.Text(svg.CharData(fmt.Sprintf("🔀 %d Pull requests opened", githubTotalsStats.TotalPullRequests))).
 			XY(activityStatsX, row3Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData(fmt.Sprintf("⭕ %d Issues opened", activityStats.TotalIssues))).
+		svg.Text(svg.CharData(fmt.Sprintf("⭕ %d Issues opened", githubTotalsStats.TotalIssues))).
 			XY(activityStatsX, row4Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
@@ -125,7 +125,7 @@ func generateStatsRow(userInfo *GitHubUserInfo, activityStats *ActivityStats) sv
 			XY(communityStatsX, row2Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData("⭐ Starred 136 repositories")).
+		svg.Text(svg.CharData(fmt.Sprintf("⭐ Starred %d repositories", githubTotalsStats.TotalStarredRepos))).
 			XY(communityStatsX, row3Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
