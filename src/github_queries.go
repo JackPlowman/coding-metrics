@@ -166,8 +166,9 @@ func getCommitsTotal(userName, userId string) int {
 type GitHubTotals struct {
 	TotalPullRequests       int
 	TotalIssues             int
-	TotalIssueComments      int
 	TotalPullRequestReviews int
+	TotalStarredRepos       int
+	TotalSponsors           int
 }
 
 func getGitHubTotals(userName, userId string) *GitHubTotals {
@@ -182,13 +183,16 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			pullRequests {
 				totalCount
 			}
-			issueComments {
-				totalCount
-			}
 			contributionsCollection {
 				pullRequestReviewContributions {
 					totalCount
 				}
+			}
+			starredRepositories {
+				totalCount
+			}
+			sponsorshipsAsSponsor {
+				totalCount
 			}
 		}
 	}`
@@ -213,6 +217,12 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 					TotalCount int `json:"totalCount"`
 				} `json:"pullRequestReviewContributions"`
 			} `json:"contributionsCollection"`
+			StarredRepositories struct {
+				TotalCount int `json:"totalCount"`
+			} `json:"starredRepositories"`
+			SponsorshipsAsSponsor struct {
+				TotalCount int `json:"totalCount"`
+			} `json:"sponsorshipsAsSponsor"`
 		} `json:"user"`
 	}
 
@@ -224,28 +234,38 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 		TotalPullRequests:       result.User.PullRequests.TotalCount,
 		TotalIssues:             result.User.Issues.TotalCount,
 		TotalPullRequestReviews: result.User.ContributionsCollection.PullRequestReviewContributions.TotalCount,
+		TotalStarredRepos:       result.User.StarredRepositories.TotalCount,
+		TotalSponsors:           result.User.SponsorshipsAsSponsor.TotalCount,
 	}
 	zap.L().
-		Debug("GitHub totals fetched", zap.Int("total_pull_requests", response.TotalPullRequests), zap.Int("total_issues", response.TotalIssues), zap.Int("total_pr_reviews", response.TotalPullRequestReviews))
+		Debug("GitHub totals fetched",
+			zap.Int("total_pull_requests", response.TotalPullRequests),
+			zap.Int("total_issues", response.TotalIssues),
+			zap.Int("total_pr_reviews", response.TotalPullRequestReviews),
+			zap.Int("total_starred_repos", response.TotalStarredRepos),
+			zap.Int("total_sponsors", response.TotalSponsors))
 	return response
 }
 
-type ActivityStats struct {
+type GitHubTotalsStats struct {
 	TotalCommits            int
 	TotalIssues             int
 	TotalPullRequests       int
-	TotalIssueComments      int
 	TotalPullRequestReviews int
+	TotalStarredRepos       int
+	TotalSponsors           int
 }
 
-func getActivityStats(userName, userId string) *ActivityStats {
+func getGitHubTotalsStats(userName, userId string) *GitHubTotalsStats {
 	totals := getGitHubTotals(userName, userId)
 	totalCommits := getCommitsTotal(userName, userId)
 
-	return &ActivityStats{
+	return &GitHubTotalsStats{
 		TotalCommits:            totalCommits,
 		TotalPullRequests:       totals.TotalPullRequests,
 		TotalIssues:             totals.TotalIssues,
 		TotalPullRequestReviews: totals.TotalPullRequestReviews,
+		TotalStarredRepos:       totals.TotalStarredRepos,
+		TotalSponsors:           totals.TotalSponsors,
 	}
 }
