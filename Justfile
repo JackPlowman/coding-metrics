@@ -5,6 +5,9 @@
 export SRC_DIR := "./src"
 export SRC_RECURSIVE := "./src/..."
 
+build:
+    go build -o coding-metrics ${SRC_DIR}
+
 run:
     go run ${SRC_DIR}
 
