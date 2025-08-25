@@ -117,7 +117,7 @@ func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsS
 			Fill(svg.String(accentBlue)).
 			Style(headerStyle),
 
-		svg.Text(svg.CharData("📊 Member of 0 organizations")).
+		svg.Text(svg.CharData(fmt.Sprintf("📊 Member of %d organizations", githubTotalsStats.TotalMemberOfOrganizations))).
 			XY(communityStatsX, row1Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
@@ -140,7 +140,7 @@ func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsS
 			Fill(svg.String(accentBlue)).
 			Style(headerStyle),
 
-		svg.Text(svg.CharData("💖 0 Sponsors")).
+		svg.Text(svg.CharData(fmt.Sprintf("💖 %d Sponsors", githubTotalsStats.TotalSponsors))).
 			XY(repositoriesStatsX, row1Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
@@ -152,7 +152,7 @@ func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsS
 			XY(repositoriesStatsX, row3Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData("👁️ 38 Watchers")).
+		svg.Text(svg.CharData(fmt.Sprintf("👁️ %d Watchers", githubTotalsStats.TotalWatchers))).
 			XY(repositoriesStatsX, row4Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),

@@ -165,11 +165,13 @@ func getCommitsTotal(userName, userId string) int {
 }
 
 type GitHubTotals struct {
-	TotalPullRequests       int
-	TotalIssues             int
-	TotalPullRequestReviews int
-	TotalStarredRepos       int
-	TotalSponsors           int
+	TotalPullRequests          int
+	TotalIssues                int
+	TotalPullRequestReviews    int
+	TotalStarredRepos          int
+	TotalSponsors              int
+	TotalMemberOfOrganizations int
+	TotalWatchers              int
 }
 
 func getGitHubTotals(userName, userId string) *GitHubTotals {
@@ -192,7 +194,13 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			starredRepositories {
 				totalCount
 			}
-			sponsorshipsAsSponsor {
+			sponsorshipsAsMaintainer {
+				totalCount
+			}
+			organizations {
+				totalCount
+			}
+			watching {
 				totalCount
 			}
 		}
@@ -210,9 +218,6 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			PullRequests struct {
 				TotalCount int `json:"totalCount"`
 			} `json:"pullRequests"`
-			IssueComments struct {
-				TotalCount int `json:"totalCount"`
-			} `json:"issueComments"`
 			ContributionsCollection struct {
 				PullRequestReviewContributions struct {
 					TotalCount int `json:"totalCount"`
@@ -221,9 +226,15 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			StarredRepositories struct {
 				TotalCount int `json:"totalCount"`
 			} `json:"starredRepositories"`
-			SponsorshipsAsSponsor struct {
+			SponsorshipsAsMaintainer struct {
 				TotalCount int `json:"totalCount"`
-			} `json:"sponsorshipsAsSponsor"`
+			} `json:"sponsorshipsAsMaintainer"`
+			Organizations struct {
+				TotalCount int `json:"totalCount"`
+			} `json:"organizations"`
+			Watching struct {
+				TotalCount int `json:"totalCount"`
+			} `json:"watching"`
 		} `json:"user"`
 	}
 
@@ -232,11 +243,13 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 	}
 
 	response := &GitHubTotals{
-		TotalPullRequests:       result.User.PullRequests.TotalCount,
-		TotalIssues:             result.User.Issues.TotalCount,
-		TotalPullRequestReviews: result.User.ContributionsCollection.PullRequestReviewContributions.TotalCount,
-		TotalStarredRepos:       result.User.StarredRepositories.TotalCount,
-		TotalSponsors:           result.User.SponsorshipsAsSponsor.TotalCount,
+		TotalPullRequests:          result.User.PullRequests.TotalCount,
+		TotalIssues:                result.User.Issues.TotalCount,
+		TotalPullRequestReviews:    result.User.ContributionsCollection.PullRequestReviewContributions.TotalCount,
+		TotalStarredRepos:          result.User.StarredRepositories.TotalCount,
+		TotalSponsors:              result.User.SponsorshipsAsMaintainer.TotalCount,
+		TotalMemberOfOrganizations: result.User.Organizations.TotalCount,
+		TotalWatchers:              result.User.Watching.TotalCount,
 	}
 	zap.L().
 		Debug("GitHub totals fetched",
@@ -244,17 +257,22 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			zap.Int("total_issues", response.TotalIssues),
 			zap.Int("total_pr_reviews", response.TotalPullRequestReviews),
 			zap.Int("total_starred_repos", response.TotalStarredRepos),
-			zap.Int("total_sponsors", response.TotalSponsors))
+			zap.Int("total_sponsors", response.TotalSponsors),
+			zap.Int("total_member_of_organizations", response.TotalMemberOfOrganizations),
+			zap.Int("total_watchers", response.TotalWatchers),
+		)
 	return response
 }
 
 type GitHubTotalsStats struct {
-	TotalCommits            int
-	TotalIssues             int
-	TotalPullRequests       int
-	TotalPullRequestReviews int
-	TotalStarredRepos       int
-	TotalSponsors           int
+	TotalCommits               int
+	TotalIssues                int
+	TotalPullRequests          int
+	TotalPullRequestReviews    int
+	TotalStarredRepos          int
+	TotalSponsors              int
+	TotalMemberOfOrganizations int
+	TotalWatchers              int
 }
 
 func getGitHubTotalsStats(userName, userId string) *GitHubTotalsStats {
@@ -262,11 +280,13 @@ func getGitHubTotalsStats(userName, userId string) *GitHubTotalsStats {
 	totalCommits := getCommitsTotal(userName, userId)
 
 	return &GitHubTotalsStats{
-		TotalCommits:            totalCommits,
-		TotalPullRequests:       totals.TotalPullRequests,
-		TotalIssues:             totals.TotalIssues,
-		TotalPullRequestReviews: totals.TotalPullRequestReviews,
-		TotalStarredRepos:       totals.TotalStarredRepos,
-		TotalSponsors:           totals.TotalSponsors,
+		TotalCommits:               totalCommits,
+		TotalPullRequests:          totals.TotalPullRequests,
+		TotalIssues:                totals.TotalIssues,
+		TotalPullRequestReviews:    totals.TotalPullRequestReviews,
+		TotalStarredRepos:          totals.TotalStarredRepos,
+		TotalSponsors:              totals.TotalSponsors,
+		TotalMemberOfOrganizations: totals.TotalMemberOfOrganizations,
+		TotalWatchers:              totals.TotalWatchers,
 	}
 }
