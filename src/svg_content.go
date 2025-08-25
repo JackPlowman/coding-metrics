@@ -81,7 +81,6 @@ func generateStatsRow(userInfo *GitHubUserInfo, activityStats *ActivityStats) sv
 	row2Y := row1Y + 16.0
 	row3Y := row2Y + 16.0
 	row4Y := row3Y + 16.0
-	row5Y := row4Y + 16.0
 	headerStyle := svg.String(
 		"font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;",
 	)
@@ -99,7 +98,7 @@ func generateStatsRow(userInfo *GitHubUserInfo, activityStats *ActivityStats) sv
 			XY(activityStatsX, row1Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData("📋 1111 Pull requests reviewed")).
+		svg.Text(svg.CharData(fmt.Sprintf("📋 %d Pull requests reviewed", activityStats.TotalPullRequestReviews))).
 			XY(activityStatsX, row2Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
@@ -109,10 +108,6 @@ func generateStatsRow(userInfo *GitHubUserInfo, activityStats *ActivityStats) sv
 			Style(textStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("⭕ %d Issues opened", activityStats.TotalIssues))).
 			XY(activityStatsX, row4Y, svg.Px).
-			Fill(svg.String(textPrimary)).
-			Style(textStyle),
-		svg.Text(svg.CharData("💬 1111 Issue comments")).
-			XY(activityStatsX, row5Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
 
@@ -130,16 +125,12 @@ func generateStatsRow(userInfo *GitHubUserInfo, activityStats *ActivityStats) sv
 			XY(communityStatsX, row2Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData("💝 Sponsoring 0 repositories")).
+		svg.Text(svg.CharData("⭐ Starred 136 repositories")).
 			XY(communityStatsX, row3Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData("⭐ Starred 136 repositories")).
-			XY(communityStatsX, row4Y, svg.Px).
-			Fill(svg.String(textPrimary)).
-			Style(textStyle),
 		svg.Text(svg.CharData("👀 Watching 42 repositories")).
-			XY(communityStatsX, row5Y, svg.Px).
+			XY(communityStatsX, row4Y, svg.Px).
 			Fill(svg.String(textPrimary)).
 			Style(textStyle),
 
