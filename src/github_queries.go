@@ -164,10 +164,10 @@ func getCommitsTotal(userName, userId string) int {
 }
 
 type GitHubTotals struct {
-	TotalPullRequests         int
-	TotalIssues               int
-	TotalIssueComments        int
-	TotalPullRequestReviews   int
+	TotalPullRequests       int
+	TotalIssues             int
+	TotalIssueComments      int
+	TotalPullRequestReviews int
 }
 
 func getGitHubTotals(userName, userId string) *GitHubTotals {
@@ -231,11 +231,11 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 }
 
 type ActivityStats struct {
-	TotalCommits             int
-	TotalIssues              int
-	TotalPullRequests        int
-	TotalIssueComments       int
-	TotalPullRequestReviews  int
+	TotalCommits            int
+	TotalIssues             int
+	TotalPullRequests       int
+	TotalIssueComments      int
+	TotalPullRequestReviews int
 }
 
 func getActivityStats(userName, userId string) *ActivityStats {
