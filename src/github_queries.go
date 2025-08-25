@@ -164,9 +164,10 @@ func getCommitsTotal(userName, userId string) int {
 }
 
 type GitHubTotals struct {
-	TotalPullRequests  int
-	TotalIssues        int
-	TotalIssueComments int
+	TotalPullRequests       int
+	TotalIssues             int
+	TotalIssueComments      int
+	TotalPullRequestReviews int
 }
 
 func getGitHubTotals(userName, userId string) *GitHubTotals {
@@ -183,6 +184,11 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			}
 			issueComments {
 				totalCount
+			}
+			contributionsCollection {
+				pullRequestReviewContributions {
+					totalCount
+				}
 			}
 		}
 	}`
@@ -202,6 +208,11 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			IssueComments struct {
 				TotalCount int `json:"totalCount"`
 			} `json:"issueComments"`
+			ContributionsCollection struct {
+				PullRequestReviewContributions struct {
+					TotalCount int `json:"totalCount"`
+				} `json:"pullRequestReviewContributions"`
+			} `json:"contributionsCollection"`
 		} `json:"user"`
 	}
 
@@ -210,20 +221,21 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 	}
 
 	response := &GitHubTotals{
-		TotalPullRequests:  result.User.PullRequests.TotalCount,
-		TotalIssues:        result.User.Issues.TotalCount,
-		TotalIssueComments: result.User.IssueComments.TotalCount,
+		TotalPullRequests:       result.User.PullRequests.TotalCount,
+		TotalIssues:             result.User.Issues.TotalCount,
+		TotalPullRequestReviews: result.User.ContributionsCollection.PullRequestReviewContributions.TotalCount,
 	}
 	zap.L().
-		Debug("GitHub totals fetched", zap.Int("total_pull_requests", response.TotalPullRequests), zap.Int("total_issues", response.TotalIssues), zap.Int("total_issue_comments", response.TotalIssueComments))
+		Debug("GitHub totals fetched", zap.Int("total_pull_requests", response.TotalPullRequests), zap.Int("total_issues", response.TotalIssues), zap.Int("total_pr_reviews", response.TotalPullRequestReviews))
 	return response
 }
 
 type ActivityStats struct {
-	TotalCommits       int
-	TotalIssues        int
-	TotalPullRequests  int
-	TotalIssueComments int
+	TotalCommits            int
+	TotalIssues             int
+	TotalPullRequests       int
+	TotalIssueComments      int
+	TotalPullRequestReviews int
 }
 
 func getActivityStats(userName, userId string) *ActivityStats {
@@ -231,9 +243,9 @@ func getActivityStats(userName, userId string) *ActivityStats {
 	totalCommits := getCommitsTotal(userName, userId)
 
 	return &ActivityStats{
-		TotalCommits:       totalCommits,
-		TotalPullRequests:  totals.TotalPullRequests,
-		TotalIssues:        totals.TotalIssues,
-		TotalIssueComments: totals.TotalIssueComments,
+		TotalCommits:            totalCommits,
+		TotalPullRequests:       totals.TotalPullRequests,
+		TotalIssues:             totals.TotalIssues,
+		TotalPullRequestReviews: totals.TotalPullRequestReviews,
 	}
 }
