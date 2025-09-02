@@ -24,3 +24,7 @@ pre-commit:
       run: just actionlint-check
     EditorConfig Check:
       run: just editorconfig-check
+    Go Lint Check:
+      run: just lint
+    Go Vulnerability Check:
+      run: just vulncheck
