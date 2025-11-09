@@ -28,3 +28,8 @@ jobs:
           debug: "true"
           test_mode: "true"
           output_file_name: "test.svg"
+      - name: Upload Test Action Output
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: test-action-output
+          path: test.svg
