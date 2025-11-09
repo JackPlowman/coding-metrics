@@ -32,7 +32,11 @@ func createSVG(svgChildren []svg.Element) *svg.SVGElement {
 func createLocalFile(
 	svgElement *svg.SVGElement,
 ) *os.File {
-	path := filepath.Join(os.TempDir(), filepath.Clean("output.svg"))
+	outputFileName := os.Getenv("INPUT_OUTPUT_FILE_NAME")
+	if outputFileName == "" {
+		outputFileName = "output.svg"
+	}
+	path := filepath.Join(os.TempDir(), filepath.Clean(outputFileName))
 	// #nosec G304 -- The file path is controlled and safe in this context.
 	file, err := os.Create(path)
 	if err != nil {
