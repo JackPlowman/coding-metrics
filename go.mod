@@ -6,7 +6,7 @@ require (
 	github.com/google/go-github/v61 v61.0.0
 	github.com/twpayne/go-svg v1.0.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/oauth2 v0.30.0
+	golang.org/x/oauth2 v0.33.0
 )
 
 require (
