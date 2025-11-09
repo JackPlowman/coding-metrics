@@ -8,7 +8,7 @@ A GitHub Action to generate a SVG badge for your coding metrics.
   - [Table of Contents](#table-of-contents)
   - [💡 Inspiration](#-inspiration)
   - [🤝 Contributing](#-contributing)
-    - [Quick Contribution Guide](#quick-contribution-guide)
+  - [🧪 Testing](#-testing)
   - [📄 License](#-license)
 
 ## 💡 Inspiration
@@ -28,15 +28,11 @@ We welcome contributions from the community! Whether you want to:
 
 Please read our [Contributing Guidelines](docs/CONTRIBUTING.md) before submitting issues or pull requests.
 
-### Quick Contribution Guide
+## 🧪 Testing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Commit your changes (`git commit -m 'Add amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
-7. PR will run linting and formatting
+The GitHub Action is regularly run in a test repository to ensure functionality and reliability.
+
+[Latest run result](https://github.com/JackPlowman/test-coding-metrics/blob/main/output.svg)
 
 ## 📄 License
 
