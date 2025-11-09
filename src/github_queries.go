@@ -434,3 +434,98 @@ func getLanguageStats(userName string) []LanguageStat {
 
 	return languages
 }
+
+// ContributionDay represents a single day's contribution data
+type ContributionDay struct {
+	Date              string
+	ContributionCount int
+	Color             string
+}
+
+// ContributionCalendar represents the contribution calendar data
+type ContributionCalendar struct {
+	TotalContributions int
+	Weeks              []ContributionWeek
+}
+
+// ContributionWeek represents a week of contribution days
+type ContributionWeek struct {
+	ContributionDays []ContributionDay
+}
+
+// getContributionCalendar fetches the user's contribution calendar from GitHub
+func getContributionCalendar(userName string) *ContributionCalendar {
+	zap.L().Debug("Fetching contribution calendar")
+
+	query := `
+	query($login: String!) {
+		user(login: $login) {
+			contributionsCollection {
+				contributionCalendar {
+					totalContributions
+					weeks {
+						contributionDays {
+							date
+							contributionCount
+							color
+						}
+					}
+				}
+			}
+		}
+	}`
+
+	variables := map[string]interface{}{
+		"login": userName,
+	}
+
+	var result struct {
+		User struct {
+			ContributionsCollection struct {
+				ContributionCalendar struct {
+					TotalContributions int `json:"totalContributions"`
+					Weeks              []struct {
+						ContributionDays []struct {
+							Date              string `json:"date"`
+							ContributionCount int    `json:"contributionCount"`
+							Color             string `json:"color"`
+						} `json:"contributionDays"`
+					} `json:"weeks"`
+				} `json:"contributionCalendar"`
+			} `json:"contributionsCollection"`
+		} `json:"user"`
+	}
+
+	if err := QueryGitHubQLAPI(query, variables, &result); err != nil {
+		zap.L().Fatal("Failed to get contribution calendar", zap.Error(err))
+	}
+
+	// Convert the result to our data structure
+	calendar := &ContributionCalendar{
+		TotalContributions: result.User.ContributionsCollection.ContributionCalendar.TotalContributions,
+		Weeks:              make([]ContributionWeek, 0),
+	}
+
+	for _, week := range result.User.ContributionsCollection.ContributionCalendar.Weeks {
+		contributionWeek := ContributionWeek{
+			ContributionDays: make([]ContributionDay, 0),
+		}
+		for _, day := range week.ContributionDays {
+			contributionWeek.ContributionDays = append(
+				contributionWeek.ContributionDays,
+				ContributionDay{
+					Date:              day.Date,
+					ContributionCount: day.ContributionCount,
+					Color:             day.Color,
+				},
+			)
+		}
+		calendar.Weeks = append(calendar.Weeks, contributionWeek)
+	}
+
+	zap.L().Debug("Contribution calendar fetched",
+		zap.Int("total_contributions", calendar.TotalContributions),
+		zap.Int("total_weeks", len(calendar.Weeks)))
+
+	return calendar
+}
