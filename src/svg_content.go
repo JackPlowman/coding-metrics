@@ -72,7 +72,11 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 }
 
 // Generate stats row of svg
-func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsStats, contributionCalendar *ContributionCalendar) svg.Element {
+func generateStatsRow(
+	userInfo *GitHubUserInfo,
+	githubTotalsStats *GitHubTotalsStats,
+	contributionCalendar *ContributionCalendar,
+) svg.Element {
 	activityStatsX := 20.0
 	communityStatsX := 250.0
 	repositoriesStatsX := 480.0
@@ -162,7 +166,10 @@ func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsS
 	)
 }
 
-func generateContributionGraph(headerStyle, textStyle svg.String, contributionCalendar *ContributionCalendar) svg.Element {
+func generateContributionGraph(
+	headerStyle, textStyle svg.String,
+	contributionCalendar *ContributionCalendar,
+) svg.Element {
 	// Create a contribution graph showing the current month in rows of 7 days
 	squares := generateMonthContributionSquares(contributionCalendar)
 
@@ -227,7 +234,11 @@ func generateMonthContributionSquares(contributionCalendar *ContributionCalendar
 	return squares
 }
 
-func getMonthContributions(contributionCalendar *ContributionCalendar, year int, month time.Month) []ContributionDay {
+func getMonthContributions(
+	contributionCalendar *ContributionCalendar,
+	year int,
+	month time.Month,
+) []ContributionDay {
 	monthContributions := []ContributionDay{}
 	for _, week := range contributionCalendar.Weeks {
 		for _, day := range week.ContributionDays {

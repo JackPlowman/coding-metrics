@@ -511,11 +511,14 @@ func getContributionCalendar(userName string) *ContributionCalendar {
 			ContributionDays: make([]ContributionDay, 0),
 		}
 		for _, day := range week.ContributionDays {
-			contributionWeek.ContributionDays = append(contributionWeek.ContributionDays, ContributionDay{
-				Date:              day.Date,
-				ContributionCount: day.ContributionCount,
-				Color:             day.Color,
-			})
+			contributionWeek.ContributionDays = append(
+				contributionWeek.ContributionDays,
+				ContributionDay{
+					Date:              day.Date,
+					ContributionCount: day.ContributionCount,
+					Color:             day.Color,
+				},
+			)
 		}
 		calendar.Weeks = append(calendar.Weeks, contributionWeek)
 	}
