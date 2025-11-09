@@ -16,9 +16,6 @@ var (
 	textPrimary   = "#24292f" // Dark text for light mode
 	textSecondary = "#656d76" // Secondary gray text
 	accentBlue    = "#0969da" // GitHub blue
-	greenLight    = "#9be9a8" // Light green for contribution graph
-	greenMedium   = "#40c463" // Medium green
-	greenDark     = "#216e39" // Dark green
 )
 
 // Generate the main SVG content
