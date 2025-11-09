@@ -26,6 +26,7 @@ func generateSVGContent() []svg.Element {
 	userInfo := getGitHubUserInfo()
 	userId := getUserId(userInfo.Login)
 	githubTotalsStats := getGitHubTotalsStats(userInfo.Login, userId)
+	languageStats := getLanguageStats(userInfo.Login)
 	elements := []svg.Element{
 		svg.Title(svg.CharData(title)),
 		svg.Desc(svg.CharData(desc)),
@@ -37,7 +38,7 @@ func generateSVGContent() []svg.Element {
 		generateStatsRow(userInfo, githubTotalsStats),
 
 		// Languages section (bottom)
-		generateLanguagesSection(),
+		generateLanguagesSection(languageStats),
 	}
 
 	return elements
@@ -237,21 +238,10 @@ func generateContributionGraph(headerStyle, textStyle svg.String) svg.Element {
 	return svg.G().AppendChildren(append(headerElements, squares...)...)
 }
 
-func generateLanguagesSection() svg.Element {
-	// Define languages with their relative proportions
-	languages := []struct {
-		name       string
-		colour     string
-		proportion float64 // Relative proportion (will be normalized to full width)
-	}{
-		{"Python", "#3776ab", 120},
-		{"TypeScript", "#2b7489", 100},
-		{"Just", "#384d54", 80},
-		{"HCL", "#844fba", 60},
-		{"Shell", "#89e051", 70},
-		{"Go", "#00add8", 85},
-		{"JavaScript", "#f1e05a", 90},
-		{"CSS", "#563d7c", 40},
+func generateLanguagesSection(languages []LanguageStat) svg.Element {
+	// If no languages data, return empty group
+	if len(languages) == 0 {
+		return svg.G()
 	}
 
 	// Calculate total width available for the bar (SVG width minus margins)
@@ -260,17 +250,15 @@ func generateLanguagesSection() svg.Element {
 	const marginRight = 20.0
 	const barWidth = svgWidth - marginLeft - marginRight
 
-	// Calculate total proportions
-	totalProportion := 0.0
-	for _, lang := range languages {
-		totalProportion += lang.proportion
-	}
-
 	elements := []svg.Element{
 		// Most used languages header
 		// Languages
-		svg.Text(svg.CharData("🗣️ 21 Languages")).XY(20, 220, svg.Px).Fill(svg.String(accentBlue)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;")),
+		svg.Text(svg.CharData(fmt.Sprintf("🗣️ %d Languages", len(languages)))).
+			XY(20, 220, svg.Px).
+			Fill(svg.String(accentBlue)).
+			Style(svg.String(
+				"font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;",
+			)),
 		svg.Text(svg.CharData("Most used languages")).
 			XY(400, 240, svg.Px).
 			Fill(svg.String(accentBlue)).
@@ -282,13 +270,13 @@ func generateLanguagesSection() svg.Element {
 	segmentWidths := make([]float64, len(languages))
 
 	for i, lang := range languages {
-		// Calculate proportional width for this segment
-		segmentWidth := (lang.proportion / totalProportion) * barWidth
+		// Calculate proportional width based on percentage (percentages sum to 100)
+		segmentWidth := (lang.Percentage / 100.0) * barWidth
 		segmentWidths[i] = segmentWidth
 
 		// Language bar segment
 		elements = append(elements, svg.Rect().
-			Fill(svg.String(lang.colour)).
+			Fill(svg.String(lang.Color)).
 			Width(svg.Px(segmentWidth)).
 			Height(svg.Px(8)).
 			X(svg.Px(currentX)).
@@ -305,17 +293,17 @@ func generateLanguagesSection() svg.Element {
 
 		// Calculate text width estimate to position dot to the left
 		// Approximate 6px per character for the font size
-		textWidthEstimate := float64(len(lang.name)) * 6.0
+		textWidthEstimate := float64(len(lang.Name)) * 6.0
 		labelStartX := segmentCenter - (textWidthEstimate / 2)
 		dotX := labelStartX - 8 // 8px to the left of label start
 
 		// Language colour dot - to the left of the label
 		elements = append(elements, svg.Circle().
-			Fill(svg.String(lang.colour)).
+			Fill(svg.String(lang.Color)).
 			CXCYR(dotX, 286, 4, svg.Px))
 
 		// Language label - centered in segment
-		elements = append(elements, svg.Text(svg.CharData(lang.name)).
+		elements = append(elements, svg.Text(svg.CharData(lang.Name)).
 			XY(segmentCenter, 290, svg.Px).
 			Fill(svg.String(textPrimary)).
 			TextAnchor(svg.String("middle")).
