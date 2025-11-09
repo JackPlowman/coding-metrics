@@ -166,52 +166,8 @@ func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsS
 }
 
 func generateContributionGraph(headerStyle, textStyle svg.String, contributionCalendar *ContributionCalendar) svg.Element {
-	// Create a contribution graph with real data from GitHub
-	squares := []svg.Element{}
-
-	// Generate contribution squares pattern
-	squareSize := 11
-	squareGap := 2
-	startX := 650
-	startY := 125
-
-	// Get the last 4 weeks of contribution data (to fit in the available space)
-	// GitHub's contribution calendar includes full weeks (Sunday-Saturday)
-	totalWeeks := len(contributionCalendar.Weeks)
-	weeksToShow := 4
-	if totalWeeks < weeksToShow {
-		weeksToShow = totalWeeks
-	}
-
-	// Start from the most recent weeks
-	startWeek := totalWeeks - weeksToShow
-	if startWeek < 0 {
-		startWeek = 0
-	}
-
-	// Draw contribution squares for each day in the selected weeks
-	for weekIndex := 0; weekIndex < weeksToShow && (startWeek+weekIndex) < totalWeeks; weekIndex++ {
-		week := contributionCalendar.Weeks[startWeek+weekIndex]
-		for dayIndex, day := range week.ContributionDays {
-			x := startX + weekIndex*(squareSize+squareGap)
-			y := startY + dayIndex*(squareSize+squareGap)
-
-			// Use the color provided by GitHub API
-			colour := day.Color
-			if colour == "" {
-				// Fallback to grey if no color provided
-				colour = "#ebedf0"
-			}
-
-			squares = append(squares, svg.Rect().
-				Fill(svg.String(colour)).
-				Width(svg.Px(float64(squareSize))).
-				Height(svg.Px(float64(squareSize))).
-				X(svg.Px(float64(x))).
-				Y(svg.Px(float64(y))).
-				RX(svg.Px(2)))
-		}
-	}
+	// Create a contribution graph showing the current month in rows of 7 days
+	squares := generateMonthContributionSquares(contributionCalendar)
 
 	// Add contribution graph header
 	headerElements := []svg.Element{
@@ -224,6 +180,71 @@ func generateContributionGraph(headerStyle, textStyle svg.String, contributionCa
 	}
 
 	return svg.G().AppendChildren(append(headerElements, squares...)...)
+}
+
+func generateMonthContributionSquares(contributionCalendar *ContributionCalendar) []svg.Element {
+	squares := []svg.Element{}
+
+	// Generate contribution squares pattern
+	squareSize := 11
+	squareGap := 2
+	startX := 650
+	startY := 125
+
+	// Get current month data
+	now := time.Now()
+	currentYear, currentMonth := now.Year(), now.Month()
+
+	// Determine days in the current month
+	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC)
+	firstOfNextMonth := firstOfMonth.AddDate(0, 1, 0)
+	daysInMonth := int(firstOfNextMonth.Sub(firstOfMonth).Hours() / 24)
+
+	// Collect contribution data for the current month
+	monthContributions := getMonthContributions(contributionCalendar, currentYear, currentMonth)
+
+	// Draw contribution squares in rows of 7 days
+	daysPerRow := 7
+	for dayIndex := 0; dayIndex < daysInMonth; dayIndex++ {
+		row := dayIndex / daysPerRow
+		col := dayIndex % daysPerRow
+
+		x := startX + col*(squareSize+squareGap)
+		y := startY + row*(squareSize+squareGap)
+
+		// Get color for this day if we have data
+		colour := "#ebedf0" // Default: no contributions
+		if dayIndex < len(monthContributions) && monthContributions[dayIndex].Color != "" {
+			colour = monthContributions[dayIndex].Color
+		}
+
+		squares = append(squares, svg.Rect().
+			Fill(svg.String(colour)).
+			Width(svg.Px(float64(squareSize))).
+			Height(svg.Px(float64(squareSize))).
+			X(svg.Px(float64(x))).
+			Y(svg.Px(float64(y))).
+			RX(svg.Px(2)))
+	}
+
+	return squares
+}
+
+func getMonthContributions(contributionCalendar *ContributionCalendar, year int, month time.Month) []ContributionDay {
+	monthContributions := []ContributionDay{}
+	for _, week := range contributionCalendar.Weeks {
+		for _, day := range week.ContributionDays {
+			dayDate, err := time.Parse("2006-01-02", day.Date)
+			if err != nil {
+				continue
+			}
+			// Check if day is in the specified month
+			if dayDate.Year() == year && dayDate.Month() == month {
+				monthContributions = append(monthContributions, day)
+			}
+		}
+	}
+	return monthContributions
 }
 
 func generateLanguagesSection(languages []LanguageStat) svg.Element {
