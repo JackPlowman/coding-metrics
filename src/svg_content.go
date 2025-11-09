@@ -48,7 +48,6 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 	yearsAgo := time.Since(userInfo.JoinedGitHub).Hours() / 24 / 365
 	return svg.G().AppendChildren(
 		// Use <foreignObject> for rounded avatar if <image> can't have rounded corners
-
 		svg.Image().
 			Href(svg.String(userInfo.AvatarURL)).
 			Width(svg.Px(24)).Height(svg.Px(24)).
@@ -239,10 +238,11 @@ func generateContributionGraph(headerStyle, textStyle svg.String) svg.Element {
 }
 
 func generateLanguagesSection() svg.Element {
+	// Define languages with their relative proportions
 	languages := []struct {
-		name   string
-		colour string
-		width  int
+		name       string
+		colour     string
+		proportion float64 // Relative proportion (will be normalized to full width)
 	}{
 		{"Python", "#3776ab", 120},
 		{"TypeScript", "#2b7489", 100},
@@ -252,6 +252,18 @@ func generateLanguagesSection() svg.Element {
 		{"Go", "#00add8", 85},
 		{"JavaScript", "#f1e05a", 90},
 		{"CSS", "#563d7c", 40},
+	}
+
+	// Calculate total width available for the bar (SVG width minus margins)
+	const svgWidth = 1000.0
+	const marginLeft = 20.0
+	const marginRight = 20.0
+	const barWidth = svgWidth - marginLeft - marginRight
+
+	// Calculate total proportions
+	totalProportion := 0.0
+	for _, lang := range languages {
+		totalProportion += lang.proportion
 	}
 
 	elements := []svg.Element{
@@ -265,36 +277,52 @@ func generateLanguagesSection() svg.Element {
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 12px; font-weight: 600;")),
 	}
 
-	// Single continuous language bar (like in the target)
-	currentX := 20
-	for _, lang := range languages {
+	// Single continuous language bar spanning full width
+	currentX := marginLeft
+	segmentWidths := make([]float64, len(languages))
+
+	for i, lang := range languages {
+		// Calculate proportional width for this segment
+		segmentWidth := (lang.proportion / totalProportion) * barWidth
+		segmentWidths[i] = segmentWidth
+
 		// Language bar segment
 		elements = append(elements, svg.Rect().
 			Fill(svg.String(lang.colour)).
-			Width(svg.Px(float64(lang.width))).
+			Width(svg.Px(segmentWidth)).
 			Height(svg.Px(8)).
-			X(svg.Px(float64(currentX))).
+			X(svg.Px(currentX)).
 			Y(svg.Px(260)))
 
-		currentX += lang.width
+		currentX += segmentWidth
 	}
 
-	// Language labels below the bar
-	currentX = 20
-	for _, lang := range languages {
-		// Language colour dot
+	// Language labels below the bar - centered within each segment
+	currentX = marginLeft
+	for i, lang := range languages {
+		segmentWidth := segmentWidths[i]
+		segmentCenter := currentX + (segmentWidth / 2)
+
+		// Calculate text width estimate to position dot to the left
+		// Approximate 6px per character for the font size
+		textWidthEstimate := float64(len(lang.name)) * 6.0
+		labelStartX := segmentCenter - (textWidthEstimate / 2)
+		dotX := labelStartX - 8 // 8px to the left of label start
+
+		// Language colour dot - to the left of the label
 		elements = append(elements, svg.Circle().
 			Fill(svg.String(lang.colour)).
-			CXCYR(float64(currentX+8), 285, 4, svg.Px))
+			CXCYR(dotX, 286, 4, svg.Px))
 
-		// Language label
+		// Language label - centered in segment
 		elements = append(elements, svg.Text(svg.CharData(lang.name)).
-			XY(float64(currentX+16), 289, svg.Px).
+			XY(segmentCenter, 290, svg.Px).
 			Fill(svg.String(textPrimary)).
+			TextAnchor(svg.String("middle")).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 12px;")),
 		)
 
-		currentX += lang.width + 20
+		currentX += segmentWidth
 	}
 
 	return svg.G().AppendChildren(elements...)
