@@ -290,3 +290,147 @@ func getGitHubTotalsStats(userName, userId string) *GitHubTotalsStats {
 		TotalWatchers:              totals.TotalWatchers,
 	}
 }
+
+// LanguageStat represents statistics for a programming language
+type LanguageStat struct {
+	Name       string
+	Color      string
+	TotalBytes int64
+	Percentage float64
+}
+
+// getLanguageStats fetches and aggregates language statistics across all user repositories
+func getLanguageStats(userName string) []LanguageStat {
+	zap.L().Debug("Fetching language statistics")
+
+	query := `
+	query($login: String!, $after: String) {
+		user(login: $login) {
+			repositories(first: 100, after: $after, ownerAffiliations: [OWNER, ORGANIZATION_MEMBER, COLLABORATOR]) {
+				pageInfo {
+					hasNextPage
+					endCursor
+				}
+				nodes {
+					name
+					languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
+						edges {
+							size
+							node {
+								name
+								color
+							}
+						}
+					}
+				}
+			}
+		}
+	}`
+
+	variables := map[string]interface{}{
+		"login": userName,
+	}
+
+	// Map to aggregate language bytes across all repositories
+	languageMap := make(map[string]*LanguageStat)
+	totalBytes := int64(0)
+
+	hasNextPage := true
+	cursor := ""
+
+	for hasNextPage {
+		if cursor != "" {
+			variables["after"] = cursor
+		}
+
+		var result struct {
+			User struct {
+				Repositories struct {
+					PageInfo struct {
+						HasNextPage bool   `json:"hasNextPage"`
+						EndCursor   string `json:"endCursor"`
+					} `json:"pageInfo"`
+					Nodes []struct {
+						Name      string `json:"name"`
+						Languages struct {
+							Edges []struct {
+								Size int64 `json:"size"`
+								Node struct {
+									Name  string `json:"name"`
+									Color string `json:"color"`
+								} `json:"node"`
+							} `json:"edges"`
+						} `json:"languages"`
+					} `json:"nodes"`
+				} `json:"repositories"`
+			} `json:"user"`
+		}
+
+		if err := QueryGitHubQLAPI(query, variables, &result); err != nil {
+			zap.L().Fatal("Failed to get language statistics", zap.Error(err))
+		}
+
+		// Aggregate language statistics
+		for _, repo := range result.User.Repositories.Nodes {
+			for _, edge := range repo.Languages.Edges {
+				langName := edge.Node.Name
+				if stat, exists := languageMap[langName]; exists {
+					stat.TotalBytes += edge.Size
+				} else {
+					languageMap[langName] = &LanguageStat{
+						Name:       langName,
+						Color:      edge.Node.Color,
+						TotalBytes: edge.Size,
+					}
+				}
+				totalBytes += edge.Size
+			}
+		}
+
+		hasNextPage = result.User.Repositories.PageInfo.HasNextPage
+		cursor = result.User.Repositories.PageInfo.EndCursor
+	}
+
+	// If no language data found, return empty slice
+	if totalBytes == 0 {
+		zap.L().Debug("No language data found")
+		return []LanguageStat{}
+	}
+
+	// Calculate percentages and filter languages with < 1%
+	languages := []LanguageStat{}
+	for _, stat := range languageMap {
+		percentage := float64(stat.TotalBytes) / float64(totalBytes) * 100.0
+		if percentage >= 1.0 {
+			stat.Percentage = percentage
+			languages = append(languages, *stat)
+		}
+	}
+
+	// Renormalize percentages to sum to 100% after filtering
+	if len(languages) > 0 {
+		totalPercentage := 0.0
+		for _, lang := range languages {
+			totalPercentage += lang.Percentage
+		}
+		for i := range languages {
+			languages[i].Percentage = (languages[i].Percentage / totalPercentage) * 100.0
+		}
+	}
+
+	// Sort languages by percentage in descending order
+	// Using a simple bubble sort for clarity
+	for i := 0; i < len(languages); i++ {
+		for j := i + 1; j < len(languages); j++ {
+			if languages[j].Percentage > languages[i].Percentage {
+				languages[i], languages[j] = languages[j], languages[i]
+			}
+		}
+	}
+
+	zap.L().Debug("Language statistics fetched",
+		zap.Int("total_languages", len(languages)),
+		zap.Int64("total_bytes", totalBytes))
+
+	return languages
+}
