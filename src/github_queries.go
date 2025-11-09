@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -52,6 +55,58 @@ func getGitHubUserInfo() *GitHubUserInfo {
 		zap.L().Fatal("Failed to decode GitHub user info", zap.Error(err))
 	}
 	return &user
+}
+
+// getAvatarAsBase64DataURI downloads the avatar image from the given URL and returns it as a base64-encoded data URI
+func getAvatarAsBase64DataURI(avatarURL string) string {
+	zap.L().Debug("Downloading avatar image", zap.String("url", avatarURL))
+
+	// Make request to download the avatar image
+	resp, err := http.Get(avatarURL) // #nosec G107 -- avatarURL comes from GitHub API and is trusted
+	if err != nil {
+		zap.L().Fatal("Failed to download avatar image", zap.Error(err))
+	}
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			zap.L().Error("Failed to close avatar response body", zap.Error(cerr))
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		zap.L().Fatal("Failed to download avatar image", zap.Int("status", resp.StatusCode))
+	}
+
+	// Read the image data
+	imageData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		zap.L().Fatal("Failed to read avatar image data", zap.Error(err))
+	}
+
+	// Determine the MIME type from the Content-Type header
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		// Fallback to detecting from URL if Content-Type is not provided
+		if strings.Contains(avatarURL, ".png") {
+			contentType = "image/png"
+		} else if strings.Contains(avatarURL, ".jpg") || strings.Contains(avatarURL, ".jpeg") {
+			contentType = "image/jpeg"
+		} else {
+			// Default to PNG if we can't determine
+			contentType = "image/png"
+		}
+	}
+
+	// Encode to base64
+	base64Data := base64.StdEncoding.EncodeToString(imageData)
+
+	// Create data URI
+	dataURI := "data:" + contentType + ";base64," + base64Data
+
+	zap.L().Debug("Avatar image encoded successfully",
+		zap.Int("size_bytes", len(imageData)),
+		zap.String("mime_type", contentType))
+
+	return dataURI
 }
 
 // GetUserId fetches the user ID for a given username
