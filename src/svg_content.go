@@ -100,7 +100,7 @@ func generateStatsRow(
 			Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(headerStyle),
 
-		svg.Text(svg.CharData(fmt.Sprintf("○ %d Commits", githubTotalsStats.TotalCommits))).
+		svg.Text(svg.CharData(fmt.Sprintf("💻 %d Commits", githubTotalsStats.TotalCommits))).
 			XY(activityStatsX, row1Y, svg.Px).
 			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
@@ -112,18 +112,18 @@ func generateStatsRow(
 			XY(activityStatsX, row3Y, svg.Px).
 			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
-		svg.Text(svg.CharData(fmt.Sprintf("⭕ %d Issues opened", githubTotalsStats.TotalIssues))).
+		svg.Text(svg.CharData(fmt.Sprintf("❗ %d Issues opened", githubTotalsStats.TotalIssues))).
 			XY(activityStatsX, row4Y, svg.Px).
 			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 
 		// Community stats section
-		svg.Text(svg.CharData("🐙 Community stats")).
+		svg.Text(svg.CharData("👥 Community stats")).
 			XY(communityStatsX, headersRowY, svg.Px).
 			Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(headerStyle),
 
-		svg.Text(svg.CharData(fmt.Sprintf("📊 Member of %d organizations", githubTotalsStats.TotalMemberOfOrganizations))).
+		svg.Text(svg.CharData(fmt.Sprintf("🏢 Member of %d organizations", githubTotalsStats.TotalMemberOfOrganizations))).
 			XY(communityStatsX, row1Y, svg.Px).
 			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
