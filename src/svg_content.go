@@ -285,32 +285,36 @@ func generateLanguagesSection(languages []LanguageStat) svg.Element {
 		currentX += segmentWidth
 	}
 
-	// Language labels below the bar - centered within each segment
-	currentX = marginLeft
+	// Language labels below the bar - all centered with good spacing
+	const labelSpacing = 80.0 // Horizontal spacing between labels
+	totalLabelsWidth := float64(len(languages)-1) * labelSpacing
+	startLabelX := (svgWidth - totalLabelsWidth) / 2 // Center the entire label group
+	labelY := 290.0
+
 	for i, lang := range languages {
-		segmentWidth := segmentWidths[i]
-		segmentCenter := currentX + (segmentWidth / 2)
+		labelX := startLabelX + (float64(i) * labelSpacing)
 
-		// Calculate text width estimate to position dot to the left
-		// Approximate 6px per character for the font size
+		// Position dot to the left of the label with consistent gap
+		// Dot has 4px radius, so we need dot center at (text start - 4px radius - gap)
+		const dotRadius = 4.0
+		const gapBetweenDotAndText = 6.0 // Visual gap between dot edge and text
+
 		textWidthEstimate := float64(len(lang.Name)) * 6.0
-		labelStartX := segmentCenter - (textWidthEstimate / 2)
-		dotX := labelStartX - 8 // 8px to the left of label start
+		textStartX := labelX - (textWidthEstimate / 2) // Since text is centered
+		dotX := textStartX - dotRadius - gapBetweenDotAndText
 
-		// Language colour dot - to the left of the label
+		// Language colour dot - to the left of the label text
 		elements = append(elements, svg.Circle().
 			Fill(svg.String(lang.Color)).
-			CXCYR(dotX, 286, 4, svg.Px))
+			CXCYR(dotX, labelY-4, dotRadius, svg.Px))
 
-		// Language label - centered in segment
+		// Language label - centered
 		elements = append(elements, svg.Text(svg.CharData(lang.Name)).
-			XY(segmentCenter, 290, svg.Px).
+			XY(labelX, labelY, svg.Px).
 			Fill(svg.String(textPrimary)).
 			TextAnchor(svg.String("middle")).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 12px;")),
 		)
-
-		currentX += segmentWidth
 	}
 
 	return svg.G().AppendChildren(elements...)
