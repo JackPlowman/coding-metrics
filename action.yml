@@ -43,3 +43,7 @@ inputs:
     description: "The commit message"
     required: false
     default: "Update Coding Metrics"
+  colour_profile:
+    description: "Colour profile to use (default, dark, light, github, ocean, sunset, forest, purple)"
+    required: false
+    default: "default"
