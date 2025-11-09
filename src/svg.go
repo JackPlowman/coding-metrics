@@ -10,8 +10,19 @@ import (
 )
 
 func createSVG(svgChildren []svg.Element) *svg.SVGElement {
+	// Add a background rectangle with the profile's background color as the first element
+	bgRect := svg.Rect().
+		Fill(svg.String(currentColourProfile.Background)).
+		Width(svg.Px(1000)).
+		Height(svg.Px(380)).
+		X(svg.Px(0)).
+		Y(svg.Px(0))
+
+	// Prepend the background to the children
+	allChildren := append([]svg.Element{bgRect}, svgChildren...)
+
 	return svg.New().WidthHeight(1000, 380, svg.Px).ViewBox(0, 0, 1000, 380).AppendChildren(
-		svgChildren...,
+		allChildren...,
 	)
 }
 
@@ -37,3 +48,4 @@ func createLocalFile(
 
 	return file
 }
+

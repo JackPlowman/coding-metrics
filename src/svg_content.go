@@ -12,11 +12,13 @@ var (
 	desc  = "GitHub profile statistics visualization"
 )
 
-var (
-	textPrimary   = "#24292f" // Dark text for light mode
-	textSecondary = "#656d76" // Secondary gray text
-	accentBlue    = "#0969da" // GitHub blue
+// Common font styles
+const (
+	fontStyle13px = "font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;"
 )
+
+// Global colour profile - will be set in main based on user selection
+var currentColourProfile ColourProfile
 
 // Generate the main SVG content
 func generateSVGContent() []svg.Element {
@@ -54,20 +56,20 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 			Class(svg.String("avatar")),
 
 		// Name - positioned next to avatar
-		svg.Text(svg.CharData(userInfo.Name)).XY(50, 45, svg.Px).Fill(svg.String(textPrimary)).
+		svg.Text(svg.CharData(userInfo.Name)).XY(50, 45, svg.Px).Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 18px; font-weight: 600;")),
 
 		// Joined info
 		svg.Text(svg.CharData(fmt.Sprintf("⏰ Joined GitHub %.0f years ago", yearsAgo))).
 			XY(20, 70, svg.Px).
-			Fill(svg.String(textSecondary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+			Fill(svg.String(currentColourProfile.TextSecondary)).
+			Style(svg.String(fontStyle13px)),
 
 		// Followed by
 		svg.Text(svg.CharData(fmt.Sprintf("👥 Followed by %d users", userInfo.Followers))).
 			XY(20, 88, svg.Px).
-			Fill(svg.String(textSecondary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+			Fill(svg.String(currentColourProfile.TextSecondary)).
+			Style(svg.String(fontStyle13px)),
 	)
 }
 
@@ -88,77 +90,75 @@ func generateStatsRow(
 	headerStyle := svg.String(
 		"font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;",
 	)
-	textStyle := svg.String(
-		"font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;",
-	)
+	textStyle := svg.String(fontStyle13px)
 	return svg.G().AppendChildren(
 		// Activity stats section
 		svg.Text(svg.CharData("📈 Activity")).
 			XY(activityStatsX, headersRowY, svg.Px).
-			Fill(svg.String(accentBlue)).
+			Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(headerStyle),
 
 		svg.Text(svg.CharData(fmt.Sprintf("○ %d Commits", githubTotalsStats.TotalCommits))).
 			XY(activityStatsX, row1Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("📋 %d Pull requests reviewed", githubTotalsStats.TotalPullRequestReviews))).
 			XY(activityStatsX, row2Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("🔀 %d Pull requests opened", githubTotalsStats.TotalPullRequests))).
 			XY(activityStatsX, row3Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("⭕ %d Issues opened", githubTotalsStats.TotalIssues))).
 			XY(activityStatsX, row4Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 
 		// Community stats section
 		svg.Text(svg.CharData("🐙 Community stats")).
 			XY(communityStatsX, headersRowY, svg.Px).
-			Fill(svg.String(accentBlue)).
+			Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(headerStyle),
 
 		svg.Text(svg.CharData(fmt.Sprintf("📊 Member of %d organizations", githubTotalsStats.TotalMemberOfOrganizations))).
 			XY(communityStatsX, row1Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("👤 Following %d users", userInfo.Following))).
 			XY(communityStatsX, row2Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("⭐ Starred %d repositories", githubTotalsStats.TotalStarredRepos))).
 			XY(communityStatsX, row3Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 		svg.Text(svg.CharData("👀 Watching 42 repositories")).
 			XY(communityStatsX, row4Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 
 		// Repository stats
 		svg.Text(svg.CharData("📚 56 Repositories")).
 			XY(repositoriesStatsX, headersRowY, svg.Px).
-			Fill(svg.String(accentBlue)).
+			Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(headerStyle),
 
 		svg.Text(svg.CharData(fmt.Sprintf("💖 %d Sponsors", githubTotalsStats.TotalSponsors))).
 			XY(repositoriesStatsX, row1Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 		svg.Text(svg.CharData("⭐ 9 Stargazers")).
 			XY(repositoriesStatsX, row2Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 		svg.Text(svg.CharData("🍴 9 Forkers")).
 			XY(repositoriesStatsX, row3Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("👁️ %d Watchers", githubTotalsStats.TotalWatchers))).
 			XY(repositoriesStatsX, row4Y, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(textStyle),
 
 		// Contribution graph
@@ -175,12 +175,12 @@ func generateContributionGraph(
 
 	// Add contribution graph header
 	headerElements := []svg.Element{
-		svg.Text(svg.CharData("📚 Contributions")).XY(630, 115, svg.Px).Fill(svg.String(accentBlue)).
+		svg.Text(svg.CharData("📚 Contributions")).XY(630, 115, svg.Px).Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(headerStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("%d contributions in the last year", contributionCalendar.TotalContributions))).
 			XY(630, 210, svg.Px).
-			Fill(svg.String(textSecondary)).
-			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
+			Fill(svg.String(currentColourProfile.TextSecondary)).
+			Style(svg.String(fontStyle13px)),
 	}
 
 	return svg.G().AppendChildren(append(headerElements, squares...)...)
@@ -216,10 +216,11 @@ func generateMonthContributionSquares(contributionCalendar *ContributionCalendar
 		x := startX + col*(squareSize+squareGap)
 		y := startY + row*(squareSize+squareGap)
 
-		// Get color for this day if we have data
-		colour := "#ebedf0" // Default: no contributions
+		// Get colour for this day if we have data
+		colour := currentColourProfile.ContributionLevel0 // Default: no contributions
 		if dayIndex < len(monthContributions) && monthContributions[dayIndex].Color != "" {
-			colour = monthContributions[dayIndex].Color
+			// Map the GitHub API colour to the current colour profile
+			colour = currentColourProfile.GetContributionColour(monthContributions[dayIndex].Color)
 		}
 
 		squares = append(squares, svg.Rect().
@@ -272,13 +273,13 @@ func generateLanguagesSection(languages []LanguageStat) svg.Element {
 		// Languages
 		svg.Text(svg.CharData(fmt.Sprintf("🗣️ %d Languages", len(languages)))).
 			XY(20, 220, svg.Px).
-			Fill(svg.String(accentBlue)).
+			Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(svg.String(
 				"font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;",
 			)),
 		svg.Text(svg.CharData("Most used languages")).
 			XY(400, 240, svg.Px).
-			Fill(svg.String(accentBlue)).
+			Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 12px; font-weight: 600;")),
 	}
 
@@ -328,7 +329,7 @@ func generateLanguagesSection(languages []LanguageStat) svg.Element {
 		// Language label - centered
 		elements = append(elements, svg.Text(svg.CharData(lang.Name)).
 			XY(labelX, labelY, svg.Px).
-			Fill(svg.String(textPrimary)).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			TextAnchor(svg.String("middle")).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 12px;")),
 		)
