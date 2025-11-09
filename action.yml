@@ -10,6 +10,7 @@ branding:
 runs:
   using: "docker"
   image: "Dockerfile"
+  post-entrypoint: 'post_entrypoint.sh'
 
 inputs:
   github_token:
