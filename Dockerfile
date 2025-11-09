@@ -18,7 +18,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 FROM alpine:3.22 AS runner
 
-RUN adduser -D -H -u 10001 appuser
+RUN apk add --no-cache bash && \
+    adduser -D -H -u 10001 appuser
 
 COPY --from=builder /bin/coding-metrics /usr/local/bin/coding-metrics
 COPY post_entrypoint.sh /post_entrypoint.sh
