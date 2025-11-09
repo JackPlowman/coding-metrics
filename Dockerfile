@@ -21,8 +21,8 @@ FROM alpine:3.22 AS runner
 RUN adduser -D -H -u 10001 appuser
 
 COPY --from=builder /bin/coding-metrics /usr/local/bin/coding-metrics
-COPY post_entrypoint.sh /usr/local/bin/post_entrypoint.sh
-RUN chmod +x /usr/local/bin/post_entrypoint.sh
+COPY post_entrypoint.sh /post_entrypoint.sh
+RUN chmod +x /post_entrypoint.sh
 
 USER appuser
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
