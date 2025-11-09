@@ -34,7 +34,6 @@ func initLogger() (*zap.Logger, error) {
 
 // main is the entry point for the application.
 func main() {
-	// Initialize the color profile based on environment variable
 	initColourProfile()
 
 	svgElements := []svg.Element{}
