@@ -56,7 +56,9 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 			Class(svg.String("avatar")),
 
 		// Name - positioned next to avatar
-		svg.Text(svg.CharData(userInfo.Name)).XY(50, 45, svg.Px).Fill(svg.String(currentColourProfile.TextPrimary)).
+		svg.Text(svg.CharData(userInfo.Name)).
+			XY(50, 45, svg.Px).
+			Fill(svg.String(currentColourProfile.TextPrimary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 18px; font-weight: 600;")),
 
 		// Joined info
@@ -175,7 +177,9 @@ func generateContributionGraph(
 
 	// Add contribution graph header
 	headerElements := []svg.Element{
-		svg.Text(svg.CharData("📚 Contributions")).XY(630, 115, svg.Px).Fill(svg.String(currentColourProfile.AccentPrimary)).
+		svg.Text(svg.CharData("📚 Contributions")).
+			XY(630, 115, svg.Px).
+			Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(headerStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("%d contributions in the last year", contributionCalendar.TotalContributions))).
 			XY(630, 210, svg.Px).

@@ -43,4 +43,3 @@ func main() {
 	file := createLocalFile(svg)
 	commitSVGChanges(file)
 }
-
