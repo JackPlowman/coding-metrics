@@ -27,6 +27,7 @@ func generateSVGContent() []svg.Element {
 	userId := getUserId(userInfo.Login)
 	githubTotalsStats := getGitHubTotalsStats(userInfo.Login, userId)
 	languageStats := getLanguageStats(userInfo.Login)
+	contributionCalendar := getContributionCalendar(userInfo.Login)
 	elements := []svg.Element{
 		svg.Title(svg.CharData(title)),
 		svg.Desc(svg.CharData(desc)),
@@ -35,7 +36,7 @@ func generateSVGContent() []svg.Element {
 		generateProfileSection(userInfo),
 
 		// Stats sections (middle row)
-		generateStatsRow(userInfo, githubTotalsStats),
+		generateStatsRow(userInfo, githubTotalsStats, contributionCalendar),
 
 		// Languages section (bottom)
 		generateLanguagesSection(languageStats),
@@ -74,7 +75,7 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 }
 
 // Generate stats row of svg
-func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsStats) svg.Element {
+func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsStats, contributionCalendar *ContributionCalendar) svg.Element {
 	activityStatsX := 20.0
 	communityStatsX := 250.0
 	repositoriesStatsX := 480.0
@@ -160,12 +161,12 @@ func generateStatsRow(userInfo *GitHubUserInfo, githubTotalsStats *GitHubTotalsS
 			Style(textStyle),
 
 		// Contribution graph
-		generateContributionGraph(headerStyle, textStyle),
+		generateContributionGraph(headerStyle, textStyle, contributionCalendar),
 	)
 }
 
-func generateContributionGraph(headerStyle, textStyle svg.String) svg.Element {
-	// Create a simple contribution graph with green squares like in the target
+func generateContributionGraph(headerStyle, textStyle svg.String, contributionCalendar *ContributionCalendar) svg.Element {
+	// Create a contribution graph with real data from GitHub
 	squares := []svg.Element{}
 
 	// Generate contribution squares pattern
@@ -174,62 +175,49 @@ func generateContributionGraph(headerStyle, textStyle svg.String) svg.Element {
 	startX := 650
 	startY := 125
 
-	// Determine days in the current month
-	now := time.Now()
-	year, month := now.Year(), now.Month()
-	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
-	nextMonth := firstOfMonth.AddDate(0, 1, 0)
-	daysInMonth := int(nextMonth.Sub(firstOfMonth).Hours() / 24)
-
-	daysPerRow := 7
-
-	for day := 0; day < daysInMonth; day++ {
-		x := startX + (day%daysPerRow)*(squareSize+squareGap)
-		y := startY + (day/daysPerRow)*(squareSize+squareGap)
-
-		// Vary the green intensity to simulate real contribution data
-		var colour string
-		intensity := day % 4
-		switch intensity {
-		case 0:
-			colour = "#ebedf0" // Light grey (no contributions)
-		case 1:
-			colour = greenLight
-		case 2:
-			colour = greenMedium
-		case 3:
-			colour = greenDark
-		}
-
-		squares = append(squares, svg.Rect().
-			Fill(svg.String(colour)).
-			Width(svg.Px(float64(squareSize))).
-			Height(svg.Px(float64(squareSize))).
-			X(svg.Px(float64(x))).
-			Y(svg.Px(float64(y))).
-			RX(svg.Px(2)))
+	// Get the last 4 weeks of contribution data (to fit in the available space)
+	// GitHub's contribution calendar includes full weeks (Sunday-Saturday)
+	totalWeeks := len(contributionCalendar.Weeks)
+	weeksToShow := 4
+	if totalWeeks < weeksToShow {
+		weeksToShow = totalWeeks
 	}
 
-	// Draw empty squares for the rest of the grid (up to 31 squares for 5 rows of 7)
-	for i := daysInMonth; i < 31; i++ {
-		x := startX + (i%daysPerRow)*(squareSize+squareGap)
-		y := startY + (i/daysPerRow)*(squareSize+squareGap)
+	// Start from the most recent weeks
+	startWeek := totalWeeks - weeksToShow
+	if startWeek < 0 {
+		startWeek = 0
+	}
 
-		squares = append(squares, svg.Rect().
-			Fill(svg.String("#ffffff")).
-			Stroke(svg.String("#ebedf0")).
-			Width(svg.Px(float64(squareSize))).
-			Height(svg.Px(float64(squareSize))).
-			X(svg.Px(float64(x))).
-			Y(svg.Px(float64(y))).
-			RX(svg.Px(2)))
+	// Draw contribution squares for each day in the selected weeks
+	for weekIndex := 0; weekIndex < weeksToShow && (startWeek+weekIndex) < totalWeeks; weekIndex++ {
+		week := contributionCalendar.Weeks[startWeek+weekIndex]
+		for dayIndex, day := range week.ContributionDays {
+			x := startX + weekIndex*(squareSize+squareGap)
+			y := startY + dayIndex*(squareSize+squareGap)
+
+			// Use the color provided by GitHub API
+			colour := day.Color
+			if colour == "" {
+				// Fallback to grey if no color provided
+				colour = "#ebedf0"
+			}
+
+			squares = append(squares, svg.Rect().
+				Fill(svg.String(colour)).
+				Width(svg.Px(float64(squareSize))).
+				Height(svg.Px(float64(squareSize))).
+				X(svg.Px(float64(x))).
+				Y(svg.Px(float64(y))).
+				RX(svg.Px(2)))
+		}
 	}
 
 	// Add contribution graph header
 	headerElements := []svg.Element{
 		svg.Text(svg.CharData("📚 Contributions")).XY(630, 115, svg.Px).Fill(svg.String(accentBlue)).
 			Style(headerStyle),
-		svg.Text(svg.CharData("Contributed to 52 repositories")).
+		svg.Text(svg.CharData(fmt.Sprintf("%d contributions in the last year", contributionCalendar.TotalContributions))).
 			XY(630, 210, svg.Px).
 			Fill(svg.String(textSecondary)).
 			Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;")),
