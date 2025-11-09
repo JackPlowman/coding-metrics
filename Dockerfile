@@ -18,11 +18,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 FROM alpine:3.22 AS runner
 
-RUN adduser -D -H -u 10001 appuser
-
 COPY --from=builder /bin/coding-metrics /usr/local/bin/coding-metrics
 
-USER appuser
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD ["pidof", "coding-metrics"]
 
