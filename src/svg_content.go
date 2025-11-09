@@ -48,10 +48,12 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 	yearsAgo := time.Since(userInfo.JoinedGitHub).Hours() / 24 / 365
 	return svg.G().AppendChildren(
 		// Use <foreignObject> for rounded avatar if <image> can't have rounded corners
+
 		svg.Image().
 			Href(svg.String(userInfo.AvatarURL)).
 			Width(svg.Px(24)).Height(svg.Px(24)).
-			X(svg.Px(18)).Y(svg.Px(28)),
+			X(svg.Px(18)).Y(svg.Px(28)).
+			Class(svg.String("avatar")),
 
 		// Name - positioned next to avatar
 		svg.Text(svg.CharData(userInfo.Name)).XY(50, 45, svg.Px).Fill(svg.String(textPrimary)).
