@@ -40,5 +40,6 @@ func main() {
 	svgElements = append(svgElements, generateSVGContent()...)
 	svg := createSVG(svgElements)
 	file := createLocalFile(svg)
+	writeToGitHubStepSummary(svg)
 	commitSVGChanges(file)
 }

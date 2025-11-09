@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -47,4 +48,61 @@ func createLocalFile(
 	}
 
 	return file
+}
+
+// writeToGitHubStepSummary writes the SVG content to the GitHub Actions step summary.
+// It checks if GITHUB_STEP_SUMMARY environment variable is set and writes the SVG
+// as an embedded code block. If not running in GitHub Actions, it logs a warning.
+func writeToGitHubStepSummary(svgElement *svg.SVGElement) {
+	summaryPath := os.Getenv("GITHUB_STEP_SUMMARY")
+	if summaryPath == "" {
+		zap.L().Warn("GITHUB_STEP_SUMMARY not set, skipping step summary update")
+		return
+	}
+
+	// #nosec G304 -- Path comes from GitHub Actions environment, controlled by GitHub
+	summaryFile, err := os.OpenFile(summaryPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		zap.L().Error("Failed to open GitHub step summary file", zap.Error(err))
+		return
+	}
+	defer func() {
+		if closeErr := summaryFile.Close(); closeErr != nil {
+			zap.L().Error("Failed to close GitHub step summary file", zap.Error(closeErr))
+		}
+	}()
+
+	// Write header
+	if _, err := fmt.Fprintln(summaryFile, "## Coding Metrics"); err != nil {
+		zap.L().Error("Failed to write header to step summary", zap.Error(err))
+		return
+	}
+	if _, err := fmt.Fprintln(summaryFile); err != nil {
+		zap.L().Error("Failed to write newline to step summary", zap.Error(err))
+		return
+	}
+	if _, err := fmt.Fprintln(summaryFile, "Generated coding metrics SVG:"); err != nil {
+		zap.L().Error("Failed to write description to step summary", zap.Error(err))
+		return
+	}
+	if _, err := fmt.Fprintln(summaryFile); err != nil {
+		zap.L().Error("Failed to write newline to step summary", zap.Error(err))
+		return
+	}
+
+	// Write SVG in code block
+	if _, err := fmt.Fprintln(summaryFile, "```svg"); err != nil {
+		zap.L().Error("Failed to write SVG code block start to step summary", zap.Error(err))
+		return
+	}
+	if _, err := svgElement.WriteTo(summaryFile); err != nil {
+		zap.L().Error("Failed to write SVG content to step summary", zap.Error(err))
+		return
+	}
+	if _, err := fmt.Fprintln(summaryFile, "\n```"); err != nil {
+		zap.L().Error("Failed to write SVG code block end to step summary", zap.Error(err))
+		return
+	}
+
+	zap.L().Info("Successfully added SVG to GitHub Actions step summary")
 }
