@@ -1,6 +1,6 @@
 module github.com/JackPlowman/coding-metrics
 
-go 1.25.0
+go 1.25.3
 
 require (
 	github.com/google/go-github/v61 v61.0.0
