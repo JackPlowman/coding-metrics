@@ -391,6 +391,12 @@ func getLanguageStats(userName string) []LanguageStat {
 		cursor = result.User.Repositories.PageInfo.EndCursor
 	}
 
+	// If no language data found, return empty slice
+	if totalBytes == 0 {
+		zap.L().Debug("No language data found")
+		return []LanguageStat{}
+	}
+
 	// Calculate percentages and filter languages with < 1%
 	languages := []LanguageStat{}
 	for _, stat := range languageMap {
@@ -398,6 +404,17 @@ func getLanguageStats(userName string) []LanguageStat {
 		if percentage >= 1.0 {
 			stat.Percentage = percentage
 			languages = append(languages, *stat)
+		}
+	}
+
+	// Renormalize percentages to sum to 100% after filtering
+	if len(languages) > 0 {
+		totalPercentage := 0.0
+		for _, lang := range languages {
+			totalPercentage += lang.Percentage
+		}
+		for i := range languages {
+			languages[i].Percentage = (languages[i].Percentage / totalPercentage) * 100.0
 		}
 	}
 
