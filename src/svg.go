@@ -48,4 +48,3 @@ func createLocalFile(
 
 	return file
 }
-
