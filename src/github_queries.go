@@ -63,7 +63,8 @@ func normalizeAvatarURL(avatarURL string) string {
 
 	parsed, err := url.Parse(avatarURL)
 	if err != nil {
-		zap.L().Warn("Failed to parse avatar URL", zap.String("avatar_url", avatarURL), zap.Error(err))
+		zap.L().
+			Warn("Failed to parse avatar URL", zap.String("avatar_url", avatarURL), zap.Error(err))
 		return avatarURL
 	}
 
