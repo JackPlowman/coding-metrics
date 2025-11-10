@@ -21,7 +21,13 @@ func createSVG(svgChildren []svg.Element) *svg.SVGElement {
 	// Prepend the background to the children
 	allChildren := append([]svg.Element{bgRect}, svgChildren...)
 
-	return svg.New().WidthHeight(1000, 380, svg.Px).ViewBox(0, 0, 1000, 380).AppendChildren(
+	root := svg.New().WidthHeight(1000, 380, svg.Px).ViewBox(0, 0, 1000, 380)
+	if root.Attrs == nil {
+		root.Attrs = map[string]svg.AttrValue{}
+	}
+	root.Attrs["xmlns:xlink"] = svg.String("http://www.w3.org/1999/xlink")
+
+	return root.AppendChildren(
 		allChildren...,
 	)
 }

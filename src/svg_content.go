@@ -50,14 +50,19 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 
 	// Point to hosted avatar so GitHub README sanitization keeps the image
 	avatarURL := normalizeAvatarURL(userInfo.AvatarURL)
+	avatarImage := svg.Image().
+		Href(svg.String(avatarURL)).
+		Width(svg.Px(24)).Height(svg.Px(24)).
+		X(svg.Px(18)).Y(svg.Px(28)).
+		Class(svg.String("avatar"))
+	if avatarImage.Attrs == nil {
+		avatarImage.Attrs = map[string]svg.AttrValue{}
+	}
+	avatarImage.Attrs["xlink:href"] = svg.String(avatarURL)
 
 	return svg.G().AppendChildren(
-		// Use <foreignObject> for rounded avatar if <image> can't have rounded corners
-		svg.Image().
-			Href(svg.String(avatarURL)).
-			Width(svg.Px(24)).Height(svg.Px(24)).
-			X(svg.Px(18)).Y(svg.Px(28)).
-			Class(svg.String("avatar")),
+		// Use <image> element with both href variants so sanitizers retain the avatar
+		avatarImage,
 
 		// Name - positioned next to avatar
 		svg.Text(svg.CharData(userInfo.Name)).
