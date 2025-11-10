@@ -91,16 +91,8 @@ func writeToGitHubStepSummary(svgElement *svg.SVGElement) {
 	}
 
 	// Write SVG in code block
-	if _, err := fmt.Fprintln(summaryFile, "```svg"); err != nil {
-		zap.L().Error("Failed to write SVG code block start to step summary", zap.Error(err))
-		return
-	}
 	if _, err := svgElement.WriteTo(summaryFile); err != nil {
 		zap.L().Error("Failed to write SVG content to step summary", zap.Error(err))
-		return
-	}
-	if _, err := fmt.Fprintln(summaryFile, "\n```"); err != nil {
-		zap.L().Error("Failed to write SVG code block end to step summary", zap.Error(err))
 		return
 	}
 
