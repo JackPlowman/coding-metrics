@@ -1,10 +1,9 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
-	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -56,42 +55,25 @@ func getGitHubUserInfo() *GitHubUserInfo {
 	return &user
 }
 
-// fetchAvatarAsBase64 fetches an avatar image from a URL and returns it as a base64 data URI
-func fetchAvatarAsBase64(avatarURL string) string {
-	resp, err := http.Get(avatarURL) // #nosec G107 -- URL is from GitHub API
+// normalizeAvatarURL ensures the avatar URL renders when embedded in sanitized SVGs
+func normalizeAvatarURL(avatarURL string) string {
+	if avatarURL == "" {
+		return avatarURL
+	}
+
+	parsed, err := url.Parse(avatarURL)
 	if err != nil {
-		zap.L().Error("Failed to fetch avatar image", zap.Error(err))
-		return ""
-	}
-	defer func() {
-		if cerr := resp.Body.Close(); cerr != nil {
-			zap.L().Error("Failed to close avatar response body", zap.Error(cerr))
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		zap.L().Error("Failed to fetch avatar image", zap.Int("status", resp.StatusCode))
-		return ""
+		zap.L().Warn("Failed to parse avatar URL", zap.String("avatar_url", avatarURL), zap.Error(err))
+		return avatarURL
 	}
 
-	// Read the image data
-	imageData, err := io.ReadAll(resp.Body)
-	if err != nil {
-		zap.L().Error("Failed to read avatar image data", zap.Error(err))
-		return ""
+	query := parsed.Query()
+	if query.Get("s") == "" && query.Get("size") == "" {
+		query.Set("s", "80")
 	}
+	parsed.RawQuery = query.Encode()
 
-	// Convert to base64
-	base64Image := base64.StdEncoding.EncodeToString(imageData)
-
-	// Determine content type (GitHub avatars are typically PNG)
-	contentType := resp.Header.Get("Content-Type")
-	if contentType == "" {
-		contentType = "image/png"
-	}
-
-	// Return as data URI
-	return "data:" + contentType + ";base64," + base64Image
+	return parsed.String()
 }
 
 // GetUserId fetches the user ID for a given username

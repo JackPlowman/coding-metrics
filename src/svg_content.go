@@ -48,13 +48,13 @@ func generateSVGContent() []svg.Element {
 func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 	yearsAgo := time.Since(userInfo.JoinedGitHub).Hours() / 24 / 365
 
-	// Fetch avatar as base64 data URI for proper embedding in SVG
-	avatarDataURI := fetchAvatarAsBase64(userInfo.AvatarURL)
+	// Point to hosted avatar so GitHub README sanitization keeps the image
+	avatarURL := normalizeAvatarURL(userInfo.AvatarURL)
 
 	return svg.G().AppendChildren(
 		// Use <foreignObject> for rounded avatar if <image> can't have rounded corners
 		svg.Image().
-			Href(svg.String(avatarDataURI)).
+			Href(svg.String(avatarURL)).
 			Width(svg.Px(24)).Height(svg.Px(24)).
 			X(svg.Px(18)).Y(svg.Px(28)).
 			Class(svg.String("avatar")),
