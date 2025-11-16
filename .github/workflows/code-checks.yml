@@ -23,9 +23,9 @@ jobs:
     name: Common Code Checks
     permissions:
       contents: read
-      actions: read
-      pull-requests: write
-      security-events: write
+      actions: read # Allow the workflow to read actions metadata
+      pull-requests: write # Allow the workflow to create and modify pull request comments
+      security-events: write # Allow the workflow to upload analysis results
     uses: JackPlowman/reusable-workflows/.github/workflows/common-code-checks.yml@53ec3305b882378b1be900dd62ac8d5957fa6106 # v2025.11.15.01
     secrets:
       workflow_github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -34,7 +34,7 @@ jobs:
     name: CodeQL Analysis
     permissions:
       contents: read
-      security-events: write
+      security-events: write # Allow the workflow to upload analysis results
     strategy:
       matrix:
         language: [actions, go]
@@ -46,7 +46,7 @@ jobs:
     name: Run Go Format and Lint Checks
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
+      pull-requests: write # Allow the workflow to create and modify pull request comments
     steps:
       - name: Checkout Repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -94,7 +94,7 @@ jobs:
     name: Go Dependency Submission
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Allow the workflow to create and modify repository contents
     steps:
       - name: Checkout Repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
