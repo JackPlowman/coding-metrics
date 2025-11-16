@@ -32,7 +32,7 @@ Please read our [Contributing Guidelines](docs/CONTRIBUTING.md) before submittin
 
 The GitHub Action is regularly run in a test repository to ensure functionality and reliability.
 
-[Latest run result](https://github.com/JackPlowman/test-coding-metrics/blob/main/output.svg)
+[Latest run result](https://github.com/JackPlowman/test-coding-metrics/blob/main/default.svg)
 
 ## 📄 License
 
