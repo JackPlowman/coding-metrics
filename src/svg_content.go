@@ -70,22 +70,27 @@ func generateYearContributionCalendarSection(contributionCalendar *ContributionC
 	if contributionCalendar == nil || len(contributionCalendar.Weeks) == 0 {
 		return svg.G()
 	}
-
-	const svgWidth = 1000.0
 	const marginLeft = 20.0
 
 	stats := calculateContributionCalendarStats(contributionCalendar)
 
 	// Reserve space at the right for the notes panel
 	const notesX = 700.0
+	const graphRightPadding = 15.0
 
 	weeks := contributionCalendar.Weeks
 	rows := 7
 	cols := len(weeks)
 
-	tileW, tileH, heightStep, maxHeight, gridWidth := calculateIsometricSizing(cols, rows, notesX)
-	originX, originY := 80.0, 360.0
-	originX = clamp(originX, marginLeft+tileW/2.0, notesX-40.0-(gridWidth-tileW/2.0))
+	tileW, tileH, heightStep, maxHeight, _ := calculateIsometricSizing(cols, rows, notesX)
+	originY := 360.0
+
+	// Align the isometric grid toward the notes panel to reduce empty right-side space.
+	graphRight := (notesX - 40.0) - graphRightPadding
+	originX := graphRight - (float64(cols+rows-1) * tileW / 2.0)
+	if originX < marginLeft+tileW/2.0 {
+		originX = marginLeft + tileW/2.0
+	}
 	layout := isometricLayout{
 		OriginX:     originX,
 		OriginY:     originY,
@@ -174,21 +179,39 @@ func calculateContributionCalendarStats(contributionCalendar *ContributionCalend
 }
 
 func calculateIsometricSizing(cols, rows int, notesX float64) (tileW, tileH, heightStep, maxHeight, gridWidth float64) {
+	// A slightly shallower angle than the classic 2:1 isometric projection.
+	// (Lower tileH relative to tileW => shallower projection.)
 	tileW = 12.0
-	tileH = 6.0
-	heightStep = 5.0
+	tileH = 4.8
+	heightStep = 4.0
 
 	maxHeight = 4.0 * heightStep
 	gridWidth = ((float64(cols+rows-2) * tileW) / 2.0) + tileW
 	graphMaxWidth := notesX - 40.0
-	if gridWidth <= graphMaxWidth {
+
+	// If we have extra horizontal room, scale up a bit (capped) so the calendar
+	// fills more of the empty space before the notes panel.
+	if gridWidth < graphMaxWidth {
+		const maxScaleUp = 1.22
+		scaleUp := graphMaxWidth / gridWidth
+		if scaleUp > maxScaleUp {
+			scaleUp = maxScaleUp
+		}
+		if scaleUp > 1.0 {
+			tileW *= scaleUp
+			tileH *= scaleUp
+			heightStep *= scaleUp
+			maxHeight = 4.0 * heightStep
+			gridWidth = ((float64(cols+rows-2) * tileW) / 2.0) + tileW
+		}
 		return tileW, tileH, heightStep, maxHeight, gridWidth
 	}
 
-	scale := graphMaxWidth / gridWidth
-	tileW *= scale
-	tileH *= scale
-	heightStep *= scale
+	// Otherwise scale down to fit.
+	scaleDown := graphMaxWidth / gridWidth
+	tileW *= scaleDown
+	tileH *= scaleDown
+	heightStep *= scaleDown
 	maxHeight = 4.0 * heightStep
 	gridWidth = ((float64(cols+rows-2) * tileW) / 2.0) + tileW
 	return tileW, tileH, heightStep, maxHeight, gridWidth
@@ -244,27 +267,72 @@ func generateIsometricExtrusions(
 	cols, rows int,
 	layout isometricLayout,
 ) []svg.Element {
-	elements := make([]svg.Element, 0)
-	for s := 0; s <= (cols-1)+(rows-1); s++ {
-		for row := rows - 1; row >= 0; row-- {
-			col := s - row
-			if col < 0 || col >= cols {
-				continue
-			}
+	type cubePos struct {
+		Col   int
+		Row   int
+		BaseX float64
+		BaseY float64
+		Day   ContributionDay
+	}
+
+	// Collect cubes and sort back-to-front by their screen-space base position.
+	// This keeps roofs visible and avoids later tiles overpainting earlier tops.
+	cubes := make([]cubePos, 0)
+	for col := 0; col < cols; col++ {
+		if col >= len(weeks) {
+			break
+		}
+		for row := 0; row < rows; row++ {
 			if row >= len(weeks[col].ContributionDays) {
 				continue
 			}
 			day := weeks[col].ContributionDays[row]
-			maybeAppendExtrusion(&elements, day, col, row, layout)
+			if contributionLevelFromAPIColour(day.Color) <= 0 {
+				continue
+			}
+			x := layout.OriginX + (float64(col+row) * layout.TileW / 2.0)
+			y := layout.OriginY + (float64(col) * layout.TileH / 2.0) - (float64(row) * layout.TileH / 2.0)
+			cubes = append(cubes, cubePos{Col: col, Row: row, BaseX: x, BaseY: y + layout.TileH, Day: day})
 		}
+	}
+	sort.Slice(cubes, func(i, j int) bool {
+		if cubes[i].BaseY == cubes[j].BaseY {
+			return cubes[i].BaseX < cubes[j].BaseX
+		}
+		return cubes[i].BaseY < cubes[j].BaseY
+	})
+
+	elements := make([]svg.Element, 0, len(cubes)*6)
+	for _, c := range cubes {
+		maybeAppendExtrusion(&elements, weeks, cols, rows, c.Day, c.Col, c.Row, layout)
 	}
 	return elements
 }
 
-func maybeAppendExtrusion(elements *[]svg.Element, day ContributionDay, col, row int, layout isometricLayout) {
+func contributionLevelAt(weeks []ContributionWeek, col, row int) int {
+	if col < 0 || col >= len(weeks) {
+		return 0
+	}
+	if row < 0 || row >= len(weeks[col].ContributionDays) {
+		return 0
+	}
+	return contributionLevelFromAPIColour(weeks[col].ContributionDays[row].Color)
+}
+
+func maybeAppendExtrusion(elements *[]svg.Element, weeks []ContributionWeek, cols, rows int, day ContributionDay, col, row int, layout isometricLayout) {
 	level := contributionLevelFromAPIColour(day.Color)
 	if level <= 0 {
 		return
+	}
+
+	// Occlusion (requested): blocks to the right.
+	// If the neighbour "to the right" is equal-or-higher, hide the right face so
+	// equal-level runs read as flat.
+	drawRightFace := true
+	if col+1 < cols {
+		if contributionLevelAt(weeks, col+1, row) >= level {
+			drawRightFace = false
+		}
 	}
 
 	height := float64(level) * layout.HeightStep
@@ -273,8 +341,9 @@ func maybeAppendExtrusion(elements *[]svg.Element, day ContributionDay, col, row
 	}
 
 	baseColour := currentColourProfile.GetContributionColour(day.Color)
-	leftColour := adjustHex(baseColour, 0.78)
-	rightColour := adjustHex(baseColour, 0.62)
+	// Single-colour cubes (no per-face shading)
+	leftColour := baseColour
+	rightColour := baseColour
 	topColour := baseColour
 
 	x := layout.OriginX + (float64(col+row) * layout.TileW / 2.0)
@@ -289,20 +358,47 @@ func maybeAppendExtrusion(elements *[]svg.Element, day ContributionDay, col, row
 	*elements = append(*elements,
 		svg.Polygon().
 			Points(toSVGPoints(leftFace)).
-			Fill(svg.String(leftColour)).
-			Stroke(svg.String(currentColourProfile.Background)).
-			StrokeWidth(svg.Px(layout.StrokeWidth)),
-		svg.Polygon().
-			Points(toSVGPoints(rightFace)).
-			Fill(svg.String(rightColour)).
-			Stroke(svg.String(currentColourProfile.Background)).
-			StrokeWidth(svg.Px(layout.StrokeWidth)),
+			Fill(svg.String(leftColour)),
+	)
+	if drawRightFace {
+		*elements = append(*elements,
+			svg.Polygon().
+				Points(toSVGPoints(rightFace)).
+				Fill(svg.String(rightColour)),
+		)
+	}
+	*elements = append(*elements,
 		svg.Polygon().
 			Points(toSVGPoints(top)).
-			Fill(svg.String(topColour)).
-			Stroke(svg.String(currentColourProfile.Background)).
-			StrokeWidth(svg.Px(layout.StrokeWidth)),
+			Fill(svg.String(topColour)),
 	)
+
+	// Explicit outline (avoids tops reading like triangles)
+	stroke := svg.String(currentColourProfile.Background)
+	sw := svg.Px(layout.StrokeWidth)
+
+	// Top diamond outline (always)
+	*elements = append(*elements,
+		svg.Line().X1Y1X2Y2(top[0].X, top[0].Y, top[1].X, top[1].Y).Stroke(stroke).StrokeWidth(sw),
+		svg.Line().X1Y1X2Y2(top[1].X, top[1].Y, top[2].X, top[2].Y).Stroke(stroke).StrokeWidth(sw),
+		svg.Line().X1Y1X2Y2(top[2].X, top[2].Y, top[3].X, top[3].Y).Stroke(stroke).StrokeWidth(sw),
+		svg.Line().X1Y1X2Y2(top[3].X, top[3].Y, top[0].X, top[0].Y).Stroke(stroke).StrokeWidth(sw),
+	)
+
+	// Left/front outline edges (always visible in this projection)
+	*elements = append(*elements,
+		svg.Line().X1Y1X2Y2(top[3].X, top[3].Y, base[3].X, base[3].Y).Stroke(stroke).StrokeWidth(sw),
+		svg.Line().X1Y1X2Y2(top[2].X, top[2].Y, base[2].X, base[2].Y).Stroke(stroke).StrokeWidth(sw),
+		svg.Line().X1Y1X2Y2(base[3].X, base[3].Y, base[2].X, base[2].Y).Stroke(stroke).StrokeWidth(sw),
+	)
+
+	// Right outline edges only if the right face is exposed (blocked-to-the-right rule)
+	if drawRightFace {
+		*elements = append(*elements,
+			svg.Line().X1Y1X2Y2(top[1].X, top[1].Y, base[1].X, base[1].Y).Stroke(stroke).StrokeWidth(sw),
+			svg.Line().X1Y1X2Y2(base[1].X, base[1].Y, base[2].X, base[2].Y).Stroke(stroke).StrokeWidth(sw),
+		)
+	}
 }
 
 func generateContributionCalendarNotes(stats contributionCalendarStats, notesX, startY, lineGap float64) []svg.Element {
