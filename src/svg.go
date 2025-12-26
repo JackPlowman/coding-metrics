@@ -10,18 +10,21 @@ import (
 )
 
 func createSVG(svgChildren []svg.Element) *svg.SVGElement {
+	const svgWidth = 1000
+	const svgHeight = 520
+
 	// Add a background rectangle with the profile's background color as the first element
 	bgRect := svg.Rect().
 		Fill(svg.String(currentColourProfile.Background)).
-		Width(svg.Px(1000)).
-		Height(svg.Px(380)).
+		Width(svg.Px(svgWidth)).
+		Height(svg.Px(svgHeight)).
 		X(svg.Px(0)).
 		Y(svg.Px(0))
 
 	// Prepend the background to the children
 	allChildren := append([]svg.Element{bgRect}, svgChildren...)
 
-	root := svg.New().WidthHeight(1000, 380, svg.Px).ViewBox(0, 0, 1000, 380)
+	root := svg.New().WidthHeight(svgWidth, svgHeight, svg.Px).ViewBox(0, 0, svgWidth, svgHeight)
 	if root.Attrs == nil {
 		root.Attrs = map[string]svg.AttrValue{}
 	}
