@@ -33,7 +33,7 @@ This is a **GitHub Action** that generates SVG badges for GitHub coding metrics.
 
 - `just lint` - golangci-lint (required before commit)
 - `just vulncheck` - govulncheck for security
-- Pre-commit hooks via Lefthook (`lefthook.yml`) run 10+ checks including gitleaks, prettier, actionlint, zizmor, pinact
+- Pre-commit hooks via Prek (`.pre-commit-config.yaml`) run 10+ checks including gitleaks, prettier, actionlint, zizmor, pinact
 
 **Environment Variables**:
 All inputs prefixed with `INPUT_` (GitHub Actions convention):
