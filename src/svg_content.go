@@ -15,7 +15,7 @@ var (
 
 // Common font styles
 const (
-	fontStyle13px = "font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;"
+	fontStyle13px       = "font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 13px;"
 	fontStyleHeader15px = "font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 15px; font-weight: 600;"
 )
 
@@ -66,7 +66,9 @@ func generateSVGContent() []svg.Element {
 	return elements
 }
 
-func generateYearContributionCalendarSection(contributionCalendar *ContributionCalendar) svg.Element {
+func generateYearContributionCalendarSection(
+	contributionCalendar *ContributionCalendar,
+) svg.Element {
 	if contributionCalendar == nil || len(contributionCalendar.Weeks) == 0 {
 		return svg.G()
 	}
@@ -108,7 +110,17 @@ func generateYearContributionCalendarSection(contributionCalendar *ContributionC
 			Style(svg.String(fontStyleHeader15px)),
 	}
 
-	elements = append(elements, generateIsometricBaseTiles(weeks, cols, rows, layout.OriginX, layout.OriginY, layout.TileW, layout.TileH)...)
+	elements = append(
+		elements,
+		generateIsometricBaseTiles(
+			weeks,
+			cols,
+			rows,
+			layout.OriginX,
+			layout.OriginY,
+			layout.TileW,
+			layout.TileH,
+		)...)
 	elements = append(elements, generateIsometricExtrusions(weeks, cols, rows, layout)...)
 	elements = append(elements, generateContributionCalendarNotes(stats, notesX, 330, 18)...)
 
@@ -156,7 +168,9 @@ func contributionLevelFromAPIColour(apiColour string) int {
 	}
 }
 
-func calculateContributionCalendarStats(contributionCalendar *ContributionCalendar) contributionCalendarStats {
+func calculateContributionCalendarStats(
+	contributionCalendar *ContributionCalendar,
+) contributionCalendarStats {
 	if contributionCalendar == nil {
 		return contributionCalendarStats{}
 	}
@@ -178,7 +192,10 @@ func calculateContributionCalendarStats(contributionCalendar *ContributionCalend
 	}
 }
 
-func calculateIsometricSizing(cols, rows int, notesX float64) (tileW, tileH, heightStep, maxHeight, gridWidth float64) {
+func calculateIsometricSizing(
+	cols, rows int,
+	notesX float64,
+) (tileW, tileH, heightStep, maxHeight, gridWidth float64) {
 	// A slightly shallower angle than the classic 2:1 isometric projection.
 	// (Lower tileH relative to tileW => shallower projection.)
 	tileW = 12.0
@@ -215,16 +232,6 @@ func calculateIsometricSizing(cols, rows int, notesX float64) (tileW, tileH, hei
 	maxHeight = 4.0 * heightStep
 	gridWidth = ((float64(cols+rows-2) * tileW) / 2.0) + tileW
 	return tileW, tileH, heightStep, maxHeight, gridWidth
-}
-
-func clamp(v, min, max float64) float64 {
-	if v < min {
-		return min
-	}
-	if v > max {
-		return max
-	}
-	return v
 }
 
 func generateIsometricBaseTiles(
@@ -292,7 +299,10 @@ func generateIsometricExtrusions(
 			}
 			x := layout.OriginX + (float64(col+row) * layout.TileW / 2.0)
 			y := layout.OriginY + (float64(col) * layout.TileH / 2.0) - (float64(row) * layout.TileH / 2.0)
-			cubes = append(cubes, cubePos{Col: col, Row: row, BaseX: x, BaseY: y + layout.TileH, Day: day})
+			cubes = append(
+				cubes,
+				cubePos{Col: col, Row: row, BaseX: x, BaseY: y + layout.TileH, Day: day},
+			)
 		}
 	}
 	sort.Slice(cubes, func(i, j int) bool {
@@ -319,7 +329,14 @@ func contributionLevelAt(weeks []ContributionWeek, col, row int) int {
 	return contributionLevelFromAPIColour(weeks[col].ContributionDays[row].Color)
 }
 
-func maybeAppendExtrusion(elements *[]svg.Element, weeks []ContributionWeek, cols, rows int, day ContributionDay, col, row int, layout isometricLayout) {
+func maybeAppendExtrusion(
+	elements *[]svg.Element,
+	weeks []ContributionWeek,
+	cols, rows int,
+	day ContributionDay,
+	col, row int,
+	layout isometricLayout,
+) {
 	level := contributionLevelFromAPIColour(day.Color)
 	if level <= 0 {
 		return
@@ -386,22 +403,42 @@ func maybeAppendExtrusion(elements *[]svg.Element, weeks []ContributionWeek, col
 	)
 
 	// Left/front outline edges (always visible in this projection)
-	*elements = append(*elements,
-		svg.Line().X1Y1X2Y2(top[3].X, top[3].Y, base[3].X, base[3].Y).Stroke(stroke).StrokeWidth(sw),
-		svg.Line().X1Y1X2Y2(top[2].X, top[2].Y, base[2].X, base[2].Y).Stroke(stroke).StrokeWidth(sw),
-		svg.Line().X1Y1X2Y2(base[3].X, base[3].Y, base[2].X, base[2].Y).Stroke(stroke).StrokeWidth(sw),
+	*elements = append(
+		*elements,
+		svg.Line().
+			X1Y1X2Y2(top[3].X, top[3].Y, base[3].X, base[3].Y).
+			Stroke(stroke).
+			StrokeWidth(sw),
+		svg.Line().
+			X1Y1X2Y2(top[2].X, top[2].Y, base[2].X, base[2].Y).
+			Stroke(stroke).
+			StrokeWidth(sw),
+		svg.Line().
+			X1Y1X2Y2(base[3].X, base[3].Y, base[2].X, base[2].Y).
+			Stroke(stroke).
+			StrokeWidth(sw),
 	)
 
 	// Right outline edges only if the right face is exposed (blocked-to-the-right rule)
 	if drawRightFace {
-		*elements = append(*elements,
-			svg.Line().X1Y1X2Y2(top[1].X, top[1].Y, base[1].X, base[1].Y).Stroke(stroke).StrokeWidth(sw),
-			svg.Line().X1Y1X2Y2(base[1].X, base[1].Y, base[2].X, base[2].Y).Stroke(stroke).StrokeWidth(sw),
+		*elements = append(
+			*elements,
+			svg.Line().
+				X1Y1X2Y2(top[1].X, top[1].Y, base[1].X, base[1].Y).
+				Stroke(stroke).
+				StrokeWidth(sw),
+			svg.Line().
+				X1Y1X2Y2(base[1].X, base[1].Y, base[2].X, base[2].Y).
+				Stroke(stroke).
+				StrokeWidth(sw),
 		)
 	}
 }
 
-func generateContributionCalendarNotes(stats contributionCalendarStats, notesX, startY, lineGap float64) []svg.Element {
+func generateContributionCalendarNotes(
+	stats contributionCalendarStats,
+	notesX, startY, lineGap float64,
+) []svg.Element {
 	y := startY
 	return []svg.Element{
 		svg.Text(svg.CharData("📌 Commits streaks")).
@@ -431,7 +468,9 @@ func generateContributionCalendarNotes(stats contributionCalendarStats, notesX, 
 	}
 }
 
-func collectContributionCounts(contributionCalendar *ContributionCalendar) ([]time.Time, map[time.Time]int, int) {
+func collectContributionCounts(
+	contributionCalendar *ContributionCalendar,
+) ([]time.Time, map[time.Time]int, int) {
 	counts := map[time.Time]int{}
 	dates := make([]time.Time, 0)
 	maxInDay := 0
@@ -441,7 +480,16 @@ func collectContributionCounts(contributionCalendar *ContributionCalendar) ([]ti
 			if err != nil {
 				continue
 			}
-			dayDate = time.Date(dayDate.Year(), dayDate.Month(), dayDate.Day(), 0, 0, 0, 0, time.UTC)
+			dayDate = time.Date(
+				dayDate.Year(),
+				dayDate.Month(),
+				dayDate.Day(),
+				0,
+				0,
+				0,
+				0,
+				time.UTC,
+			)
 			if _, exists := counts[dayDate]; !exists {
 				dates = append(dates, dayDate)
 			}
@@ -502,32 +550,6 @@ func calculateAveragePerDay(total, days int) float64 {
 		return 0
 	}
 	return float64(total) / float64(days)
-}
-
-func adjustHex(hex string, factor float64) string {
-	// factor < 1.0 darkens, > 1.0 lightens
-	if len(hex) != 7 || hex[0] != '#' {
-		return hex
-	}
-	var r, g, b int
-	_, err := fmt.Sscanf(hex, "#%02x%02x%02x", &r, &g, &b)
-	if err != nil {
-		return hex
-	}
-	clamp := func(v int) int {
-		if v < 0 {
-			return 0
-		}
-		if v > 255 {
-			return 255
-		}
-		return v
-	}
-
-	r2 := clamp(int(float64(r) * factor))
-	g2 := clamp(int(float64(g) * factor))
-	b2 := clamp(int(float64(b) * factor))
-	return fmt.Sprintf("#%02x%02x%02x", r2, g2, b2)
 }
 
 // Generate profile section of svg
