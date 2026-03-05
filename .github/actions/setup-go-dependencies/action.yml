@@ -5,8 +5,8 @@ runs:
   using: "composite"
   steps:
     - name: Setup Go environment
-      uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+      uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
       with:
         go-version-file: go.mod
     - name: Set up Just
-      uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3.0.0
+      uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3.1.0
