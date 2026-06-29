@@ -1,16 +1,20 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
 )
 
 const bearerPrefix = "Bearer "
+const maxAvatarBytes = 2 * 1024 * 1024
 
 // getGitHubUserInfo fetches the user's information from GitHub REST API
 type GitHubUserInfo struct {
@@ -75,6 +79,87 @@ func normalizeAvatarURL(avatarURL string) string {
 	parsed.RawQuery = query.Encode()
 
 	return parsed.String()
+}
+
+// getAvatarHref returns a self-contained avatar data URI where possible.
+// SVGs embedded as images often cannot load external image subresources, so
+// using a data URI keeps the GitHub avatar visible in README/profile renders.
+func getAvatarHref(avatarURL string) string {
+	normalizedURL := normalizeAvatarURL(avatarURL)
+	if normalizedURL == "" {
+		return ""
+	}
+
+	dataURI := fetchAvatarDataURI(
+		&http.Client{Timeout: 15 * time.Second},
+		normalizedURL,
+	)
+	if dataURI != "" {
+		return dataURI
+	}
+
+	return normalizedURL
+}
+
+func fetchAvatarDataURI(client *http.Client, avatarURL string) string {
+	req, err := http.NewRequest("GET", avatarURL, nil)
+	if err != nil {
+		zap.L().Warn("Failed to create avatar request", zap.String("avatar_url", avatarURL), zap.Error(err))
+		return ""
+	}
+	req.Header.Set("Accept", "image/*")
+	req.Header.Set("User-Agent", "coding-metrics")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		zap.L().Warn("Failed to fetch avatar", zap.String("avatar_url", avatarURL), zap.Error(err))
+		return ""
+	}
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			zap.L().Warn("Failed to close avatar response body", zap.Error(cerr))
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		zap.L().Warn("Avatar request returned non-200 status",
+			zap.String("avatar_url", avatarURL),
+			zap.Int("status", resp.StatusCode))
+		return ""
+	}
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxAvatarBytes+1))
+	if err != nil {
+		zap.L().Warn("Failed to read avatar response", zap.String("avatar_url", avatarURL), zap.Error(err))
+		return ""
+	}
+	if len(body) == 0 || len(body) > maxAvatarBytes {
+		zap.L().Warn("Avatar response was empty or too large",
+			zap.String("avatar_url", avatarURL),
+			zap.Int("bytes", len(body)))
+		return ""
+	}
+
+	contentType := cleanImageContentType(resp.Header.Get("Content-Type"), body)
+	if contentType == "" {
+		zap.L().Warn("Avatar response was not an image",
+			zap.String("avatar_url", avatarURL),
+			zap.String("content_type", resp.Header.Get("Content-Type")))
+		return ""
+	}
+
+	return "data:" + contentType + ";base64," + base64.StdEncoding.EncodeToString(body)
+}
+
+func cleanImageContentType(contentType string, body []byte) string {
+	contentType = strings.TrimSpace(strings.Split(contentType, ";")[0])
+	if contentType == "" {
+		contentType = http.DetectContentType(body)
+	}
+	if !strings.HasPrefix(contentType, "image/") {
+		return ""
+	}
+	return contentType
 }
 
 // GetUserId fetches the user ID for a given username
