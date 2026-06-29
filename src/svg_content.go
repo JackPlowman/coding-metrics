@@ -556,8 +556,8 @@ func calculateAveragePerDay(total, days int) float64 {
 func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 	yearsAgo := time.Since(userInfo.JoinedGitHub).Hours() / 24 / 365
 
-	// Point to hosted avatar so GitHub README sanitization keeps the image
-	avatarURL := normalizeAvatarURL(userInfo.AvatarURL)
+	// Embed the avatar so it renders when the SVG is displayed as an image.
+	avatarURL := getAvatarHref(userInfo.AvatarURL)
 	avatarImage := svg.Image().
 		Href(svg.String(avatarURL)).
 		Width(svg.Px(24)).Height(svg.Px(24)).
@@ -569,7 +569,7 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 	avatarImage.Attrs["xlink:href"] = svg.String(avatarURL)
 
 	return svg.G().AppendChildren(
-		// Use <image> element with both href variants so sanitizers retain the avatar
+		// Use both href variants so SVG consumers with old xlink handling still work.
 		avatarImage,
 
 		// Name - positioned next to avatar
