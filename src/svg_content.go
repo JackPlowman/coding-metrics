@@ -611,9 +611,14 @@ func generateStatsRow(
 	githubTotalsStats *GitHubTotalsStats,
 	contributionCalendar *ContributionCalendar,
 ) svg.Element {
-	activityStatsX := 20.0
-	communityStatsX := 250.0
-	repositoriesStatsX := 480.0
+	const (
+		statsColumnStart = 20.0
+		statsColumnGap   = 230.0
+	)
+	activityStatsX := statsColumnStart
+	communityStatsX := statsColumnStart + statsColumnGap
+	repositoriesStatsX := statsColumnStart + 2*statsColumnGap
+	contributionsStatsX := statsColumnStart + 3*statsColumnGap
 	headersRowY := 115.0
 	row1Y := 133.0
 	row2Y := row1Y + 16.0
@@ -692,25 +697,31 @@ func generateStatsRow(
 			Style(textStyle),
 
 		// Contribution graph
-		generateContributionGraph(headerStyle, textStyle, contributionCalendar),
+		generateContributionGraph(
+			headerStyle,
+			textStyle,
+			contributionCalendar,
+			contributionsStatsX,
+		),
 	)
 }
 
 func generateContributionGraph(
 	headerStyle, textStyle svg.String,
 	contributionCalendar *ContributionCalendar,
+	columnX float64,
 ) svg.Element {
 	// Create a contribution graph showing the current month in rows of 7 days
-	squares := generateMonthContributionSquares(contributionCalendar)
+	squares := generateMonthContributionSquares(contributionCalendar, columnX)
 
 	// Add contribution graph header
 	headerElements := []svg.Element{
 		svg.Text(svg.CharData("📚 Contributions")).
-			XY(630, 115, svg.Px).
+			XY(columnX, 115, svg.Px).
 			Fill(svg.String(currentColourProfile.AccentPrimary)).
 			Style(headerStyle),
 		svg.Text(svg.CharData(fmt.Sprintf("%d contributions in the last year", contributionCalendar.TotalContributions))).
-			XY(630, 210, svg.Px).
+			XY(columnX, 210, svg.Px).
 			Fill(svg.String(currentColourProfile.TextSecondary)).
 			Style(svg.String(fontStyle13px)),
 	}
@@ -718,13 +729,16 @@ func generateContributionGraph(
 	return svg.G().AppendChildren(append(headerElements, squares...)...)
 }
 
-func generateMonthContributionSquares(contributionCalendar *ContributionCalendar) []svg.Element {
+func generateMonthContributionSquares(
+	contributionCalendar *ContributionCalendar,
+	columnX float64,
+) []svg.Element {
 	squares := []svg.Element{}
 
 	// Generate contribution squares pattern
 	squareSize := 11
 	squareGap := 2
-	startX := 650
+	startX := columnX + 20
 	startY := 125
 
 	// Get current month data
@@ -745,7 +759,7 @@ func generateMonthContributionSquares(contributionCalendar *ContributionCalendar
 		row := dayIndex / daysPerRow
 		col := dayIndex % daysPerRow
 
-		x := startX + col*(squareSize+squareGap)
+		x := startX + float64(col*(squareSize+squareGap))
 		y := startY + row*(squareSize+squareGap)
 
 		// Get colour for this day if we have data
@@ -759,7 +773,7 @@ func generateMonthContributionSquares(contributionCalendar *ContributionCalendar
 			Fill(svg.String(colour)).
 			Width(svg.Px(float64(squareSize))).
 			Height(svg.Px(float64(squareSize))).
-			X(svg.Px(float64(x))).
+			X(svg.Px(x)).
 			Y(svg.Px(float64(y))).
 			RX(svg.Px(2)))
 	}
