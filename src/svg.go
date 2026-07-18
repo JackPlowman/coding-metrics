@@ -11,7 +11,7 @@ import (
 
 func createSVG(svgChildren []svg.Element) *svg.SVGElement {
 	const svgWidth = 1000
-	const svgHeight = 520
+	const svgHeight = 550
 
 	// Add a background rectangle with the profile's background color as the first element
 	bgRect := svg.Rect().
