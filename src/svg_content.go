@@ -61,9 +61,21 @@ func generateSVGContent() []svg.Element {
 
 		// Year contribution calendar (bottom)
 		generateYearContributionCalendarSection(contributionCalendar),
+
+		// Generation timestamp (footer)
+		generateTimestampFooter(),
 	}
 
 	return elements
+}
+
+func generateTimestampFooter() svg.Element {
+	updatedAt := time.Now().Format("02 Jan 2006, 15:04 MST")
+	return svg.Text(svg.CharData(fmt.Sprintf("Last updated %s", updatedAt))).
+		XY(980, 532, svg.Px).
+		Fill(svg.String(currentColourProfile.TextSecondary)).
+		TextAnchor(svg.String("end")).
+		Style(svg.String("font-family: -apple-system, BlinkMacSystemFont, Segoe UI; font-size: 9px;"))
 }
 
 func generateYearContributionCalendarSection(
@@ -85,7 +97,9 @@ func generateYearContributionCalendarSection(
 	cols := len(weeks)
 
 	tileW, tileH, heightStep, maxHeight, _ := calculateIsometricSizing(cols, rows, notesX)
-	originY := 360.0
+	// A steeper projection pushes the far end of the year downward, so lift the
+	// grid slightly to keep it comfortably inside the card.
+	originY := 350.0
 
 	// Align the isometric grid toward the notes panel to reduce empty right-side space.
 	graphRight := (notesX - 40.0) - graphRightPadding
@@ -196,10 +210,10 @@ func calculateIsometricSizing(
 	cols, rows int,
 	notesX float64,
 ) (tileW, tileH, heightStep, maxHeight, gridWidth float64) {
-	// A slightly shallower angle than the classic 2:1 isometric projection.
-	// (Lower tileH relative to tileW => shallower projection.)
+	// Use a classic 2:1 isometric projection for a more strongly rotated calendar.
+	// (The tile height is half its width.)
 	tileW = 12.0
-	tileH = 4.8
+	tileH = 6.0
 	heightStep = 4.0
 
 	maxHeight = 4.0 * heightStep
