@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -26,6 +27,7 @@ type GitHubUserInfo struct {
 	JoinedGitHub time.Time `json:"created_at"`
 	Login        string    `json:"login"`
 	Name         string    `json:"name"`
+	NodeID       string    `json:"node_id"`
 	PublicGists  int       `json:"public_gists"`
 	PublicRepos  int       `json:"public_repos"`
 	Type         string    `json:"type"`
@@ -172,33 +174,6 @@ func cleanImageContentType(contentType string, body []byte) string {
 	return contentType
 }
 
-// GetUserId fetches the user ID for a given username
-func getUserId(userName string) string {
-	zap.L().Debug("Fetching user ID", zap.String("username", userName))
-	userQuery := `
-	query($login: String!) {
-		user(login: $login) {
-			id
-		}
-	}`
-
-	var userResult struct {
-		User struct {
-			ID string `json:"id"`
-		} `json:"user"`
-	}
-
-	userVariables := map[string]interface{}{
-		"login": userName,
-	}
-
-	if err := QueryGitHubQLAPI(userQuery, userVariables, &userResult); err != nil {
-		zap.L().Fatal("Failed to query user ID", zap.Error(err))
-	}
-
-	return userResult.User.ID
-}
-
 // getCommitsTotal fetches the total number of commits made by a user to default branches across all repositories
 func getCommitsTotal(userName, userId string) int {
 	zap.L().
@@ -292,7 +267,7 @@ type GitHubTotals struct {
 	TotalWatchers              int
 }
 
-func getGitHubTotals(userName, userId string) *GitHubTotals {
+func getGitHubTotals(userName string) *GitHubTotals {
 	zap.L().
 		Debug("Fetching GitHub totals")
 	query := `
@@ -303,11 +278,6 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			}
 			pullRequests {
 				totalCount
-			}
-			contributionsCollection {
-				pullRequestReviewContributions {
-					totalCount
-				}
 			}
 			starredRepositories {
 				totalCount
@@ -336,11 +306,6 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			PullRequests struct {
 				TotalCount int `json:"totalCount"`
 			} `json:"pullRequests"`
-			ContributionsCollection struct {
-				PullRequestReviewContributions struct {
-					TotalCount int `json:"totalCount"`
-				} `json:"pullRequestReviewContributions"`
-			} `json:"contributionsCollection"`
 			StarredRepositories struct {
 				TotalCount int `json:"totalCount"`
 			} `json:"starredRepositories"`
@@ -363,7 +328,7 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 	response := &GitHubTotals{
 		TotalPullRequests:          result.User.PullRequests.TotalCount,
 		TotalIssues:                result.User.Issues.TotalCount,
-		TotalPullRequestReviews:    result.User.ContributionsCollection.PullRequestReviewContributions.TotalCount,
+		TotalPullRequestReviews:    getPullRequestReviewTotal(userName),
 		TotalStarredRepos:          result.User.StarredRepositories.TotalCount,
 		TotalSponsors:              result.User.SponsorshipsAsMaintainer.TotalCount,
 		TotalMemberOfOrganizations: result.User.Organizations.TotalCount,
@@ -382,6 +347,33 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 	return response
 }
 
+func getPullRequestReviewTotal(userName string) int {
+	query := `
+	query($login: String!) {
+		user(login: $login) {
+			contributionsCollection {
+				totalPullRequestReviewContributions
+			}
+		}
+	}`
+
+	var result struct {
+		User struct {
+			ContributionsCollection struct {
+				TotalPullRequestReviewContributions int `json:"totalPullRequestReviewContributions"`
+			} `json:"contributionsCollection"`
+		} `json:"user"`
+	}
+
+	variables := map[string]interface{}{"login": userName}
+	if err := QueryGitHubQLAPI(query, variables, &result); err != nil {
+		zap.L().Warn("Failed to get pull request review total", zap.Error(err))
+		return 0
+	}
+
+	return result.User.ContributionsCollection.TotalPullRequestReviewContributions
+}
+
 type GitHubTotalsStats struct {
 	TotalCommits               int
 	TotalIssues                int
@@ -394,7 +386,7 @@ type GitHubTotalsStats struct {
 }
 
 func getGitHubTotalsStats(userName, userId string) *GitHubTotalsStats {
-	totals := getGitHubTotals(userName, userId)
+	totals := getGitHubTotals(userName)
 	totalCommits := getCommitsTotal(userName, userId)
 
 	return &GitHubTotalsStats{
@@ -571,14 +563,66 @@ type ContributionWeek struct {
 	ContributionDays []ContributionDay
 }
 
-// getContributionCalendar fetches the user's contribution calendar from GitHub
+// getContributionCalendar fetches the user's contribution calendar from GitHub.
+// Use bounded ranges from the outset: a full-year calendar can exceed GitHub's
+// per-query compute limit and failed parent queries can quickly trigger the
+// secondary rate limit before an adaptive split reaches a safe range.
 func getContributionCalendar(userName string) *ContributionCalendar {
-	zap.L().Debug("Fetching contribution calendar")
+	const (
+		calendarChunkDays  = 28
+		calendarChunkPause = 200 * time.Millisecond
+	)
 
+	today := startOfUTCDay(time.Now())
+	start := today.AddDate(-1, 0, 0)
+	start = start.AddDate(0, 0, -int(start.Weekday()))
+	zap.L().Debug(
+		"Fetching contribution calendar in bounded ranges",
+		zap.String("from", start.Format("2006-01-02")),
+		zap.String("to", today.Format("2006-01-02")),
+		zap.Int("chunk_days", calendarChunkDays),
+	)
+
+	calendars := make([]*ContributionCalendar, 0, 14)
+	chunkStart := start
+	chunkIndex := 0
+	for !chunkStart.After(today) {
+		chunkEnd := chunkStart.AddDate(0, 0, calendarChunkDays-1)
+		if chunkEnd.After(today) {
+			chunkEnd = today
+		}
+		chunkIndex++
+		zap.L().Debug(
+			"Fetching contribution calendar chunk",
+			zap.Int("chunk", chunkIndex),
+			zap.String("from", chunkStart.Format("2006-01-02")),
+			zap.String("to", chunkEnd.Format("2006-01-02")),
+		)
+
+		calendar, err := getContributionCalendarRange(userName, chunkStart, chunkEnd)
+		if err != nil {
+			zap.L().Fatal("Failed to get contribution calendar chunk", zap.Error(err))
+		}
+		calendars = append(calendars, calendar)
+		chunkStart = chunkEnd.AddDate(0, 0, 1)
+		if !chunkStart.After(today) {
+			time.Sleep(calendarChunkPause)
+		}
+	}
+
+	calendar := mergeContributionCalendars(start, today, calendars...)
+	logContributionCalendarFetched(calendar, true)
+	return calendar
+}
+
+func queryContributionCalendar(
+	userName string,
+	from, to *time.Time,
+) (*ContributionCalendar, error) {
 	query := `
-	query($login: String!) {
+	query($login: String!, $from: DateTime, $to: DateTime) {
 		user(login: $login) {
-			contributionsCollection {
+			contributionsCollection(from: $from, to: $to) {
 				contributionCalendar {
 					totalContributions
 					weeks {
@@ -593,8 +637,11 @@ func getContributionCalendar(userName string) *ContributionCalendar {
 		}
 	}`
 
-	variables := map[string]interface{}{
-		"login": userName,
+	variables := map[string]interface{}{"login": userName}
+	if from != nil && to != nil {
+		variables["from"] = from.Format(time.RFC3339)
+		endOfDay := to.Add(24*time.Hour - time.Second)
+		variables["to"] = endOfDay.Format(time.RFC3339)
 	}
 
 	var result struct {
@@ -603,11 +650,7 @@ func getContributionCalendar(userName string) *ContributionCalendar {
 				ContributionCalendar struct {
 					TotalContributions int `json:"totalContributions"`
 					Weeks              []struct {
-						ContributionDays []struct {
-							Date              string `json:"date"`
-							ContributionCount int    `json:"contributionCount"`
-							Color             string `json:"color"`
-						} `json:"contributionDays"`
+						ContributionDays []ContributionDay `json:"contributionDays"`
 					} `json:"weeks"`
 				} `json:"contributionCalendar"`
 			} `json:"contributionsCollection"`
@@ -615,35 +658,117 @@ func getContributionCalendar(userName string) *ContributionCalendar {
 	}
 
 	if err := QueryGitHubQLAPI(query, variables, &result); err != nil {
-		zap.L().Fatal("Failed to get contribution calendar", zap.Error(err))
+		return nil, err
 	}
 
-	// Convert the result to our data structure
+	queryCalendar := result.User.ContributionsCollection.ContributionCalendar
 	calendar := &ContributionCalendar{
-		TotalContributions: result.User.ContributionsCollection.ContributionCalendar.TotalContributions,
-		Weeks:              make([]ContributionWeek, 0),
+		TotalContributions: queryCalendar.TotalContributions,
+		Weeks:              make([]ContributionWeek, 0, len(queryCalendar.Weeks)),
+	}
+	for _, week := range queryCalendar.Weeks {
+		calendar.Weeks = append(
+			calendar.Weeks,
+			ContributionWeek{ContributionDays: week.ContributionDays},
+		)
+	}
+	return calendar, nil
+}
+
+func getContributionCalendarRange(
+	userName string,
+	from, to time.Time,
+) (*ContributionCalendar, error) {
+	zap.L().Debug(
+		"Fetching contribution calendar range",
+		zap.String("from", from.Format("2006-01-02")),
+		zap.String("to", to.Format("2006-01-02")),
+	)
+	calendar, err := queryContributionCalendar(userName, &from, &to)
+	if err == nil {
+		return calendar, nil
 	}
 
-	for _, week := range result.User.ContributionsCollection.ContributionCalendar.Weeks {
-		contributionWeek := ContributionWeek{
-			ContributionDays: make([]ContributionDay, 0),
-		}
-		for _, day := range week.ContributionDays {
-			contributionWeek.ContributionDays = append(
-				contributionWeek.ContributionDays,
-				ContributionDay{
-					Date:              day.Date,
-					ContributionCount: day.ContributionCount,
-					Color:             day.Color,
-				},
-			)
-		}
-		calendar.Weeks = append(calendar.Weeks, contributionWeek)
+	days := int(to.Sub(from).Hours()/24) + 1
+	if !isGraphQLResourceLimitError(err) || days <= 7 {
+		return nil, fmt.Errorf(
+			"contribution calendar range %s to %s: %w",
+			from.Format("2006-01-02"),
+			to.Format("2006-01-02"),
+			err,
+		)
 	}
 
-	zap.L().Debug("Contribution calendar fetched",
+	midpoint := from.AddDate(0, 0, (days/2)-1)
+	rightStart := midpoint.AddDate(0, 0, 1)
+	zap.L().Warn(
+		"Contribution calendar range exceeded GitHub resources; splitting range",
+		zap.String("from", from.Format("2006-01-02")),
+		zap.String("to", to.Format("2006-01-02")),
+		zap.Int("days", days),
+		zap.String("left_to", midpoint.Format("2006-01-02")),
+		zap.String("right_from", rightStart.Format("2006-01-02")),
+	)
+
+	left, err := getContributionCalendarRange(userName, from, midpoint)
+	if err != nil {
+		return nil, err
+	}
+	right, err := getContributionCalendarRange(userName, rightStart, to)
+	if err != nil {
+		return nil, err
+	}
+	return mergeContributionCalendars(from, to, left, right), nil
+}
+
+func mergeContributionCalendars(
+	from, to time.Time,
+	calendars ...*ContributionCalendar,
+) *ContributionCalendar {
+	byDate := make(map[string]ContributionDay)
+	for _, calendar := range calendars {
+		for _, week := range calendar.Weeks {
+			for _, day := range week.ContributionDays {
+				byDate[day.Date] = day
+			}
+		}
+	}
+
+	merged := &ContributionCalendar{Weeks: make([]ContributionWeek, 0)}
+	week := ContributionWeek{ContributionDays: make([]ContributionDay, 0, 7)}
+	for date := from; !date.After(to); date = date.AddDate(0, 0, 1) {
+		dateString := date.Format("2006-01-02")
+		day, ok := byDate[dateString]
+		if !ok {
+			day = ContributionDay{Date: dateString, Color: githubContribNone}
+		}
+		merged.TotalContributions += day.ContributionCount
+		week.ContributionDays = append(week.ContributionDays, day)
+		if len(week.ContributionDays) == 7 {
+			merged.Weeks = append(merged.Weeks, week)
+			week = ContributionWeek{ContributionDays: make([]ContributionDay, 0, 7)}
+		}
+	}
+	if len(week.ContributionDays) > 0 {
+		merged.Weeks = append(merged.Weeks, week)
+	}
+	return merged
+}
+
+func isGraphQLResourceLimitError(err error) bool {
+	return err != nil && strings.Contains(strings.ToLower(err.Error()), "resource limit")
+}
+
+func startOfUTCDay(value time.Time) time.Time {
+	utc := value.UTC()
+	return time.Date(utc.Year(), utc.Month(), utc.Day(), 0, 0, 0, 0, time.UTC)
+}
+
+func logContributionCalendarFetched(calendar *ContributionCalendar, usedBoundedRanges bool) {
+	zap.L().Debug(
+		"Contribution calendar fetched",
 		zap.Int("total_contributions", calendar.TotalContributions),
-		zap.Int("total_weeks", len(calendar.Weeks)))
-
-	return calendar
+		zap.Int("total_weeks", len(calendar.Weeks)),
+		zap.Bool("used_bounded_ranges", usedBoundedRanges),
+	)
 }

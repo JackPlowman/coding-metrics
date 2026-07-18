@@ -42,10 +42,9 @@ var currentColourProfile ColourProfile
 // Generate the main SVG content
 func generateSVGContent() []svg.Element {
 	userInfo := getGitHubUserInfo()
-	userId := getUserId(userInfo.Login)
-	githubTotalsStats := getGitHubTotalsStats(userInfo.Login, userId)
-	languageStats := getLanguageStats(userInfo.Login)
 	contributionCalendar := getContributionCalendar(userInfo.Login)
+	githubTotalsStats := getGitHubTotalsStats(userInfo.Login, userInfo.NodeID)
+	languageStats := getLanguageStats(userInfo.Login)
 	elements := []svg.Element{
 		svg.Title(svg.CharData(title)),
 		svg.Desc(svg.CharData(desc)),
