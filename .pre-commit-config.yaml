@@ -4,7 +4,7 @@ minimum_prek_version: "0.4.0"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
     hooks:
       - id: check-merge-conflict
         name: Check Merge Conflicts
@@ -20,26 +20,26 @@ repos:
         name: Detect Private Key
         description: Detects private keys that may have been added to the repository
   - repo: https://github.com/gitleaks/gitleaks
-    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e  # frozen: v8.30.1
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e # frozen: v8.30.1
     hooks:
       - id: gitleaks
         name: Gitleaks - Secret Detection
         description: Scan for secrets using Gitleaks
         language_version: "go1.25"
   - repo: https://github.com/rhysd/actionlint
-    rev: 914e7df21a07ef503a81201c76d2b11c789d3fca  # frozen: v1.7.12
+    rev: 914e7df21a07ef503a81201c76d2b11c789d3fca # frozen: v1.7.12
     hooks:
       - id: actionlint
         name: Actionlint
         description: Linter for GitHub Actions workflow files
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: bebfac867564fbd992e5b45379b4b0568d5cb85b  # frozen: 3.6.1
+    rev: bebfac867564fbd992e5b45379b4b0568d5cb85b # frozen: 3.6.1
     hooks:
       - id: editorconfig-checker
         name: EditorConfig Checker
         description: Validates files against .editorconfig rules
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: 64a97fb7fa63188393d3215c6e312f5f9c6d0f78  # frozen: v1.27.0
+    rev: 64a97fb7fa63188393d3215c6e312f5f9c6d0f78 # frozen: v1.27.0
     hooks:
       - id: zizmor
         name: Zizmor
@@ -73,3 +73,4 @@ repos:
         args: ["run", "--verify", "--check"]
         files: "^\\.github/(workflows|actions)/.*\\.ya?ml$|(^|/)action\\.ya?ml$"
         pass_filenames: false
+        language_version: "go1.26.4"

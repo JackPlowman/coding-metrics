@@ -28,7 +28,7 @@ jobs:
       - name: Run Test Action
         uses: ./
         with:
-          github_token: ${{ secrets.GH_TOKEN }}
+          github_token: ${{ secrets.GH_TOKEN }} # zizmor: ignore[secrets-outside-env]
           debug: "true"
           test_mode: "true"
           output_file_name: "test.svg"
