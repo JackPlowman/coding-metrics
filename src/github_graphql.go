@@ -31,6 +31,7 @@ type GitHubGraphQLResponse struct {
 
 // GitHubGraphQLError represents an error in a GraphQL response
 type GitHubGraphQLError struct {
+	Type      string `json:"type"`
 	Message   string `json:"message"`
 	Locations []struct {
 		Line   int `json:"line"`
@@ -80,10 +81,27 @@ func (c *GitHubGraphQLClient) Query(
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
+	startedAt := time.Now()
 	resp, err := c.Client.Do(req)
 	if err != nil {
-		zap.L().Fatal("Failed to query GitHub GraphQL API", zap.Error(err))
+		return fmt.Errorf(
+			"failed to query GitHub GraphQL API after %s: %w",
+			time.Since(startedAt),
+			err,
+		)
 	}
+	zap.L().Debug(
+		"GitHub GraphQL response",
+		zap.Int("status", resp.StatusCode),
+		zap.Duration("duration", time.Since(startedAt)),
+		zap.String("rate_limit_limit", resp.Header.Get("X-RateLimit-Limit")),
+		zap.String("rate_limit_remaining", resp.Header.Get("X-RateLimit-Remaining")),
+		zap.String("rate_limit_used", resp.Header.Get("X-RateLimit-Used")),
+		zap.String("rate_limit_reset", resp.Header.Get("X-RateLimit-Reset")),
+		zap.String("rate_limit_resource", resp.Header.Get("X-RateLimit-Resource")),
+		zap.String("retry_after", resp.Header.Get("Retry-After")),
+		zap.String("request_id", resp.Header.Get("X-GitHub-Request-Id")),
+	)
 	defer func() {
 		if cerr := resp.Body.Close(); cerr != nil {
 			zap.L().Fatal("Failed to close response body", zap.Error(cerr))
@@ -109,8 +127,19 @@ func (c *GitHubGraphQLClient) Query(
 
 	if len(graphqlResp.Errors) > 0 {
 		errorMessages := ""
-		for _, err := range graphqlResp.Errors {
-			errorMessages += err.Message + "; "
+		for _, graphqlErr := range graphqlResp.Errors {
+			zap.L().Warn(
+				"GitHub GraphQL error",
+				zap.String("type", graphqlErr.Type),
+				zap.Any("path", graphqlErr.Path),
+				zap.String("message", graphqlErr.Message),
+			)
+			errorMessages += fmt.Sprintf(
+				"%s at %v: %s; ",
+				graphqlErr.Type,
+				graphqlErr.Path,
+				graphqlErr.Message,
+			)
 		}
 		return fmt.Errorf("GraphQL errors: %s", errorMessages)
 	}

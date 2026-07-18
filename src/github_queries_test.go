@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/base64"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestNormalizeAvatarURLAddsSizeParameter(t *testing.T) {
@@ -55,5 +57,47 @@ func TestFetchAvatarDataURIRejectsNonImage(t *testing.T) {
 
 	if got := fetchAvatarDataURI(server.Client(), server.URL); got != "" {
 		t.Fatalf("expected non-image response to be rejected, got %q", got)
+	}
+}
+
+func TestMergeContributionCalendarsDeduplicatesAndFillsMissingDays(t *testing.T) {
+	from := time.Date(2026, time.July, 12, 0, 0, 0, 0, time.UTC)
+	to := from.AddDate(0, 0, 7)
+	left := &ContributionCalendar{Weeks: []ContributionWeek{{ContributionDays: []ContributionDay{
+		{Date: "2026-07-12", ContributionCount: 2, Color: githubContribLow},
+		{Date: "2026-07-13", ContributionCount: 3, Color: githubContribMediumLow},
+	}}}}
+	right := &ContributionCalendar{Weeks: []ContributionWeek{{ContributionDays: []ContributionDay{
+		{Date: "2026-07-13", ContributionCount: 4, Color: githubContribMediumHigh},
+		{Date: "2026-07-19", ContributionCount: 5, Color: githubContribHigh},
+	}}}}
+
+	got := mergeContributionCalendars(from, to, left, right)
+
+	if got.TotalContributions != 11 {
+		t.Fatalf("expected deduplicated total of 11, got %d", got.TotalContributions)
+	}
+	if len(got.Weeks) != 2 ||
+		len(got.Weeks[0].ContributionDays) != 7 ||
+		len(got.Weeks[1].ContributionDays) != 1 {
+		t.Fatalf("expected one full and one partial week, got %#v", got.Weeks)
+	}
+	if got.Weeks[0].ContributionDays[1].ContributionCount != 4 {
+		t.Fatalf("expected later duplicate to win, got %#v", got.Weeks[0].ContributionDays[1])
+	}
+	if got.Weeks[0].ContributionDays[2].Color != githubContribNone {
+		t.Fatalf(
+			"expected missing day to use the no-contribution colour, got %#v",
+			got.Weeks[0].ContributionDays[2],
+		)
+	}
+}
+
+func TestIsGraphQLResourceLimitError(t *testing.T) {
+	if !isGraphQLResourceLimitError(errors.New("RESOURCE LIMITS for this query exceeded")) {
+		t.Fatal("expected resource-limit error to be recognized")
+	}
+	if isGraphQLResourceLimitError(errors.New("bad credentials")) {
+		t.Fatal("did not expect authentication error to be recognized as a resource limit")
 	}
 }
