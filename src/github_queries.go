@@ -26,6 +26,7 @@ type GitHubUserInfo struct {
 	JoinedGitHub time.Time `json:"created_at"`
 	Login        string    `json:"login"`
 	Name         string    `json:"name"`
+	NodeID       string    `json:"node_id"`
 	PublicGists  int       `json:"public_gists"`
 	PublicRepos  int       `json:"public_repos"`
 	Type         string    `json:"type"`
@@ -172,33 +173,6 @@ func cleanImageContentType(contentType string, body []byte) string {
 	return contentType
 }
 
-// GetUserId fetches the user ID for a given username
-func getUserId(userName string) string {
-	zap.L().Debug("Fetching user ID", zap.String("username", userName))
-	userQuery := `
-	query($login: String!) {
-		user(login: $login) {
-			id
-		}
-	}`
-
-	var userResult struct {
-		User struct {
-			ID string `json:"id"`
-		} `json:"user"`
-	}
-
-	userVariables := map[string]interface{}{
-		"login": userName,
-	}
-
-	if err := QueryGitHubQLAPI(userQuery, userVariables, &userResult); err != nil {
-		zap.L().Fatal("Failed to query user ID", zap.Error(err))
-	}
-
-	return userResult.User.ID
-}
-
 // getCommitsTotal fetches the total number of commits made by a user to default branches across all repositories
 func getCommitsTotal(userName, userId string) int {
 	zap.L().
@@ -292,7 +266,7 @@ type GitHubTotals struct {
 	TotalWatchers              int
 }
 
-func getGitHubTotals(userName, userId string) *GitHubTotals {
+func getGitHubTotals(userName string) *GitHubTotals {
 	zap.L().
 		Debug("Fetching GitHub totals")
 	query := `
@@ -303,11 +277,6 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			}
 			pullRequests {
 				totalCount
-			}
-			contributionsCollection {
-				pullRequestReviewContributions {
-					totalCount
-				}
 			}
 			starredRepositories {
 				totalCount
@@ -336,11 +305,6 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 			PullRequests struct {
 				TotalCount int `json:"totalCount"`
 			} `json:"pullRequests"`
-			ContributionsCollection struct {
-				PullRequestReviewContributions struct {
-					TotalCount int `json:"totalCount"`
-				} `json:"pullRequestReviewContributions"`
-			} `json:"contributionsCollection"`
 			StarredRepositories struct {
 				TotalCount int `json:"totalCount"`
 			} `json:"starredRepositories"`
@@ -363,7 +327,7 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 	response := &GitHubTotals{
 		TotalPullRequests:          result.User.PullRequests.TotalCount,
 		TotalIssues:                result.User.Issues.TotalCount,
-		TotalPullRequestReviews:    result.User.ContributionsCollection.PullRequestReviewContributions.TotalCount,
+		TotalPullRequestReviews:    getPullRequestReviewTotal(userName),
 		TotalStarredRepos:          result.User.StarredRepositories.TotalCount,
 		TotalSponsors:              result.User.SponsorshipsAsMaintainer.TotalCount,
 		TotalMemberOfOrganizations: result.User.Organizations.TotalCount,
@@ -382,6 +346,33 @@ func getGitHubTotals(userName, userId string) *GitHubTotals {
 	return response
 }
 
+func getPullRequestReviewTotal(userName string) int {
+	query := `
+	query($login: String!) {
+		user(login: $login) {
+			contributionsCollection {
+				totalPullRequestReviewContributions
+			}
+		}
+	}`
+
+	var result struct {
+		User struct {
+			ContributionsCollection struct {
+				TotalPullRequestReviewContributions int `json:"totalPullRequestReviewContributions"`
+			} `json:"contributionsCollection"`
+		} `json:"user"`
+	}
+
+	variables := map[string]interface{}{"login": userName}
+	if err := QueryGitHubQLAPI(query, variables, &result); err != nil {
+		zap.L().Warn("Failed to get pull request review total", zap.Error(err))
+		return 0
+	}
+
+	return result.User.ContributionsCollection.TotalPullRequestReviewContributions
+}
+
 type GitHubTotalsStats struct {
 	TotalCommits               int
 	TotalIssues                int
@@ -394,7 +385,7 @@ type GitHubTotalsStats struct {
 }
 
 func getGitHubTotalsStats(userName, userId string) *GitHubTotalsStats {
-	totals := getGitHubTotals(userName, userId)
+	totals := getGitHubTotals(userName)
 	totalCommits := getCommitsTotal(userName, userId)
 
 	return &GitHubTotalsStats{
