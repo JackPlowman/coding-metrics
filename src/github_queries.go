@@ -13,8 +13,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const bearerPrefix = "Bearer "
-const maxAvatarBytes = 2 * 1024 * 1024
+const (
+	bearerPrefix   = "Bearer "
+	maxAvatarBytes = 2 * 1024 * 1024
+)
 
 // getGitHubUserInfo fetches the user's information from GitHub REST API
 type GitHubUserInfo struct {
@@ -104,7 +106,11 @@ func getAvatarHref(avatarURL string) string {
 func fetchAvatarDataURI(client *http.Client, avatarURL string) string {
 	req, err := http.NewRequest("GET", avatarURL, nil)
 	if err != nil {
-		zap.L().Warn("Failed to create avatar request", zap.String("avatar_url", avatarURL), zap.Error(err))
+		zap.L().Warn(
+			"Failed to create avatar request",
+			zap.String("avatar_url", avatarURL),
+			zap.Error(err),
+		)
 		return ""
 	}
 	req.Header.Set("Accept", "image/*")
@@ -130,7 +136,11 @@ func fetchAvatarDataURI(client *http.Client, avatarURL string) string {
 
 	body, err := io.ReadAll(io.LimitReader(resp.Body, maxAvatarBytes+1))
 	if err != nil {
-		zap.L().Warn("Failed to read avatar response", zap.String("avatar_url", avatarURL), zap.Error(err))
+		zap.L().Warn(
+			"Failed to read avatar response",
+			zap.String("avatar_url", avatarURL),
+			zap.Error(err),
+		)
 		return ""
 	}
 	if len(body) == 0 || len(body) > maxAvatarBytes {
