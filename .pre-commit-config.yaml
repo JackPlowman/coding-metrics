@@ -73,3 +73,4 @@ repos:
         args: ["run", "--verify", "--check"]
         files: "^\\.github/(workflows|actions)/.*\\.ya?ml$|(^|/)action\\.ya?ml$"
         pass_filenames: false
+        language_version: "go1.26.4"
