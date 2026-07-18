@@ -41,16 +41,14 @@ type GitHubGraphQLError struct {
 
 // GitHubGraphQLClient provides a client for making GraphQL requests to GitHub
 type GitHubGraphQLClient struct {
-	Token    string
-	Endpoint string
-	Client   *http.Client
+	Token  string
+	Client *http.Client
 }
 
 // NewGitHubGraphQLClient creates a new GitHub GraphQL client
 func NewGitHubGraphQLClient(token string) *GitHubGraphQLClient {
 	return &GitHubGraphQLClient{
-		Token:    token,
-		Endpoint: DefaultGitHubGraphQLEndpoint,
+		Token: token,
 		Client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -73,7 +71,7 @@ func (c *GitHubGraphQLClient) Query(
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", c.Endpoint, bytes.NewBuffer(reqBytes))
+	req, err := http.NewRequest("POST", DefaultGitHubGraphQLEndpoint, bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
