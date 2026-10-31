@@ -15,6 +15,9 @@ inputs:
   github_token:
     description: "The GitHub token"
     required: true
+  github_username:
+    description: "GitHub user to fetch (defaults to the authenticated user)"
+    required: false
   workflow_github_token:
     description: "The GitHub token for the workflow"
     required: false

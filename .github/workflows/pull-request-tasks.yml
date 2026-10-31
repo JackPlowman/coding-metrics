@@ -22,10 +22,52 @@ jobs:
         with:
           allowed_prefixes: "feat: ,fix: ,bug: ,ci: ,refactor: ,docs: ,build: ,chore(,deps(,chore: ,feat!: ,fix!: ,refactor!: ,test: ,build(deps): " # title should start with the given prefix
 
-  common-pull-request-tasks:
-    name: Common Pull Request Tasks
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
     permissions:
-      pull-requests: write # For writing labels and comments on PRs
-    uses: JackPlowman/reusable-workflows/.github/workflows/common-pull-request-tasks.yml@52b5547a80bbde1f87300170d9f129d7829f17c6 # v2026.07.11.02
-    secrets:
-      workflow_github_token: ${{ secrets.GITHUB_TOKEN }}
+      contents: read
+      pull-requests: write # Create PR review comments and manage PR labels.
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Dependency Review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          comment-summary-in-pr: on-failure
+
+  labeller:
+    name: Label Pull Request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # Create PR review comments and manage PR labels.
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Label Pull Request
+        uses: actions/labeler@b8dd2d9be0f68b860e7dae5dae7d772984eacd6d # v6.2.0
+        with:
+          repo-token: "${{ github.token }}"
+          configuration-path: .github/tool-configurations/labeller.yml
+          sync-labels: true
+      - name: Add Size Labels
+        uses: pascalgn/size-label-action@56b489b027932ec0cf60438a1a5f1a19c8fc71ff # v0.5.7
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        with:
+          sizes: >
+            {
+              "0": "XS",
+              "40": "S",
+              "100": "M",
+              "200": "L",
+              "800": "XL",
+              "2000": "XXL"
+            }

@@ -39,7 +39,7 @@ repos:
         name: EditorConfig Checker
         description: Validates files against .editorconfig rules
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: 64a97fb7fa63188393d3215c6e312f5f9c6d0f78 # frozen: v1.27.0
+    rev: c92afdf2c6ca336aaa8f39e2bd8d48f62dbd8e1f # frozen: v1.31.1
     hooks:
       - id: zizmor
         name: Zizmor

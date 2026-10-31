@@ -12,6 +12,46 @@ import (
 	"time"
 )
 
+func TestGetGitHubUserInfoSelectsProfileEndpoint(t *testing.T) {
+	for _, test := range []struct {
+		name, userName, path string
+	}{
+		{name: "authenticated user", path: "/user"},
+		{name: "explicit user", userName: "example", path: "/users/example"},
+		{name: "escaped user", userName: "example/other", path: "/users/example%2Fother"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Setenv("INPUT_GITHUB_USERNAME", test.userName)
+			t.Setenv("INPUT_GITHUB_TOKEN", "test-token")
+			previousTransport := http.DefaultTransport
+			t.Cleanup(func() { http.DefaultTransport = previousTransport })
+			http.DefaultTransport = contributionRoundTripFunc(
+				func(request *http.Request) (*http.Response, error) {
+					if request.URL.Scheme != "https" || request.URL.Host != "api.github.com" ||
+						request.URL.EscapedPath() != test.path {
+						t.Errorf("unexpected profile URL: %s", request.URL)
+					}
+					if got := request.Header.Get("Authorization"); got != "Bearer test-token" {
+						t.Errorf("unexpected authorization header: %q", got)
+					}
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Body: io.NopCloser(
+							strings.NewReader(
+								`{"login":"example","name":"Example User","node_id":"user-id"}`,
+							),
+						),
+					}, nil
+				},
+			)
+			user := getGitHubUserInfo()
+			if user.Login != "example" || user.Name != "Example User" || user.NodeID != "user-id" {
+				t.Fatalf("unexpected profile data: %#v", user)
+			}
+		})
+	}
+}
+
 func TestNormalizeAvatarURLAddsSizeParameter(t *testing.T) {
 	got := normalizeAvatarURL("https://avatars.githubusercontent.com/u/12345?v=4")
 
