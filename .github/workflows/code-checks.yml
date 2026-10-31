@@ -8,6 +8,7 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+  workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -30,14 +31,20 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Set up Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: "1.56.0"
       - name: Check Justfile Format
-        uses: ./.github/actions/check-justfile-format
+        run: just format-check
+
+        shell: bash
   check-markdown-links:
     name: Check Markdown links
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
+      pull-requests: write # Create PR review comments and manage PR labels.
     steps:
       - name: Checkout Repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -45,9 +52,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Check Markdown links
-        uses: ./.github/actions/check-markdown-links
+        uses: UmbrellaDocs/action-linkspector@6c637d70424624231467a4ca918be54fa3b792d0 # v1.5.4
         with:
-          github-token: ${{ github.token }}
+          github_token: ${{ github.token }}
+          config_file: .github/tool-configurations/.linkspector.yml
+          reporter: github-pr-review
+          fail_on_error: true
+          filter_mode: nofilter
+          show_stats: true
   pinact-check:
     name: Pinact Check
     runs-on: ubuntu-latest
@@ -59,8 +71,18 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Pinact Check
-        uses: ./.github/actions/pinact-check
+      - name: Check actions are pinned (with config)
+        if: ${{ hashFiles('.github/tool-configurations/pinact.yml') != '' }}
+        uses: suzuki-shunsuke/pinact-action@896d595f299e71d65b9d28349d6956abe144390a # v3.0.0
+        with:
+          skip_push: "true"
+        env:
+          PINACT_CONFIG: .github/tool-configurations/pinact.yml
+      - name: Check actions are pinned (without config)
+        if: ${{ hashFiles('.github/tool-configurations/pinact.yml') == '' }}
+        uses: suzuki-shunsuke/pinact-action@896d595f299e71d65b9d28349d6956abe144390a # v3.0.0
+        with:
+          skip_push: "true"
   prek-check:
     name: "Validate Prek Git Hooks Configuration"
     runs-on: ubuntu-latest
@@ -72,8 +94,21 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: "Validate Prek Git Hooks Configuration"
-        uses: ./.github/actions/prek-check
+      - name: Set up Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: "1.56.0"
+      - name: Run Prek Action
+        uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0
+        with:
+          prek-version: "0.4.8"
+          install-only: "true"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Prek Check
+        run: just prek-check
+
+        shell: bash
   run-actionlint:
     name: Check GitHub Actions with Actionlint
     runs-on: ubuntu-latest
@@ -85,8 +120,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Check GitHub Actions with Actionlint
-        uses: ./.github/actions/run-actionlint
+      - name: Run Actionlint
+        run: |
+          docker run --rm --volume "$PWD:/github/workspace" --workdir /github/workspace \
+            rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color
   run-editorconfig-checker:
     name: Check File Formats with EditorConfig Checker
     runs-on: ubuntu-latest
@@ -98,37 +135,60 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Check File Formats with EditorConfig Checker
-        uses: ./.github/actions/run-editorconfig-checker
+      - name: Run EditorConfig Checker
+        run: |
+          docker run --rm --volume "$PWD:/github/workspace" --workdir /github/workspace \
+            mstruebing/editorconfig-checker@sha256:af556694c3eb0a16b598efbe84c1171d40dfb779fdac6f01b89baedde065556f \
+            editorconfig-checker -color -format=github-actions
   run-gitleaks:
     name: Check for Secrets with Gitleaks
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
-      security-events: write
+      pull-requests: write # Create PR review comments and manage PR labels.
+      security-events: write # Upload security analysis results to code scanning.
     steps:
       - name: Checkout Repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Check for Secrets with Gitleaks
-        uses: ./.github/actions/run-gitleaks
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "true"
+          GITLEAKS_NOTIFY_USER_LIST: "@JackPlowman"
+      - name: Upload Anchore scan SARIF report
+        uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4.37.0
+        with:
+          sarif_file: results.sarif
   run-grype:
     name: Check for Vulnerabilities with Grype
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write
+      security-events: write # Upload security analysis results to code scanning.
     steps:
       - name: Checkout Repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Check for Vulnerabilities with Grype
-        uses: ./.github/actions/run-grype
+      - name: Scan current project
+        id: scan
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+        with:
+          path: "."
+        continue-on-error: true
+      - name: Upload Anchore scan SARIF report
+        uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4.37.0
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+      - name: Scan current project
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+        with:
+          path: "."
   run-markdownlint:
     name: "Check Markdown Files with Markdownlint"
     runs-on: ubuntu-latest
@@ -140,8 +200,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: "Check Markdown Files with Markdownlint"
-        uses: ./.github/actions/run-markdownlint
+      - name: Run Markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@8de2aa07cae85fd17c0b35642db70cf5495f1d25 # v24.0.0
+        with:
+          config: ".github/tool-configurations/.markdownlint-cli2.jsonc"
+          globs: |
+            README
+            *.md
+            **/*.md
   run-prek:
     name: "Run Prek pre-commit hook checks"
     runs-on: ubuntu-latest
@@ -153,8 +219,16 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: "Run Prek pre-commit hook checks"
-        uses: ./.github/actions/run-prek
+      - name: Set up Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: "1.56.0"
+      - name: Run Prek Action
+        uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0
+        with:
+          prek-version: "0.4.8"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
   run-prettier:
     name: "Check Code Formatting with Prettier"
     runs-on: ubuntu-latest
@@ -166,83 +240,119 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: "Check Code Formatting with Prettier"
-        uses: ./.github/actions/run-prettier
+      - name: Setup Node.js environment
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - name: Install Prettier
+        run: npm install -g prettier@3.9.5 # zizmor: ignore[adhoc-packages]
+        shell: bash
+      - name: Set up Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: "1.56.0"
+      - name: Check Code Formatting with Prettier
+        run: just prettier-check
+
+        shell: bash
   run-trivy:
     name: "Check Vulnerabilities, Secrets, Misconfigurations, and Licenses with Trivy"
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write
+      security-events: write # Upload security analysis results to code scanning.
     steps:
       - name: Checkout Repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: "Check Vulnerabilities, Secrets, Misconfigurations, and Licenses with Trivy"
-        uses: ./.github/actions/run-trivy
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          trivy-config: .github/tool-configurations/trivy.yml
+          format: "sarif"
+          output: "trivy-results.sarif"
+          version: v0.71.2
+      - name: Upload Trivy SARIF report
+        uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4.37.0
+        with:
+          sarif_file: trivy-results.sarif
   run-trufflehog:
     name: Check for Secrets with TruffleHog
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write
+      security-events: write # Upload security analysis results to code scanning.
     steps:
       - name: Checkout Repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Check for Secrets with TruffleHog
-        uses: ./.github/actions/run-trufflehog
+      - name: Secret Scanning
+        uses: trufflesecurity/trufflehog@27b0417c16317ca9a472a9a8092acce143b49c55 # v3.95.9
+        with:
+          extra_args: --results=verified,unknown
   run-yamllint:
     name: "Check YAML Files with Yamllint"
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
+      pull-requests: write # Create PR review comments and manage PR labels.
     steps:
       - name: Checkout Repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: "Check YAML Files with Yamllint"
-        uses: ./.github/actions/run-yamllint
+      - name: "Yamllint"
+        uses: karancode/yamllint-github-action@4052d365f09b8d34eb552c363d1141fd60e2aeb2 # v3.0.0
         with:
-          github-token: ${{ github.token }}
+          yamllint_file_or_dir: "."
+          yamllint_config_filepath: ".github/tool-configurations/.yaml-lint.yml"
+          yamllint_strict: true
+          yamllint_comment: true
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ github.token }}
   run-zizmor:
     name: Check GitHub Actions with zizmor
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: read
-      security-events: write
+      actions: read # Read action metadata for the workflow security audit.
+      security-events: write # Upload security analysis results to code scanning.
     steps:
       - name: Checkout Repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Check GitHub Actions with zizmor
-        uses: ./.github/actions/run-zizmor
+      - name: Run zizmor 🌈
+        uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
+        with:
+          persona: auditor
+          version: 1.31.1
   codeql-checks:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write
+      security-events: write # Upload security analysis results to code scanning.
     steps:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Analyse code
-        uses: ./.github/actions/codeql-analysis
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4.37.0
         with:
-          language: ${{ matrix.language }}
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+          config-file: GitHubSecurityLab/CodeQL-Community-Packs/configs/default.yml@v0.5.1
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4.37.0
     strategy:
       matrix:
         language: [actions, go]
@@ -257,8 +367,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Set up Go dependencies
-        uses: ./.github/actions/setup-go-dependencies
+      - name: Setup Go environment
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Set up Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: "1.56.0"
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
@@ -273,8 +389,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Set up Go dependencies
-        uses: ./.github/actions/setup-go-dependencies
+      - name: Setup Go environment
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Set up Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: "1.56.0"
       - name: Install Go Vulnerability Checker
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
       - name: Run Go Vulnerability Checker
@@ -288,8 +410,14 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - name: Set up Go dependencies
-        uses: ./.github/actions/setup-go-dependencies
+      - name: Setup Go environment
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Set up Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: "1.56.0"
       - name: Run Unit Tests
         run: go test ./src/...
 
@@ -302,8 +430,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Set up Go dependencies
-        uses: ./.github/actions/setup-go-dependencies
+      - name: Setup Go environment
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Set up Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: "1.56.0"
       - name: Build
         run: just build
 
@@ -318,9 +452,46 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Set up Go dependencies
-        uses: ./.github/actions/setup-go-dependencies
+      - name: Setup Go environment
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Set up Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: "1.56.0"
       - name: Run snapshot action
         uses: actions/go-dependency-submission@f35d5c9af13ce9cc32f7930b171e315e878f6921 # v2.0.3
         with:
           go-mod-path: go.mod
+  test-action:
+    name: Test Action
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare SVG output directory
+        run: |
+          mkdir -p .test-output
+          chmod 777 .test-output
+      - name: Run Test Action
+        uses: ./ # zizmor: ignore[self-repository] Test the checked-out PR merge commit.
+        env:
+          TMPDIR: /github/workspace/.test-output
+        with:
+          github_token: ${{ github.token }}
+          github_username: ${{ github.repository_owner }}
+          debug: "true"
+          test_mode: "true"
+          output_file_name: "output.svg"
+      - name: Upload Test Action Output
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-action-output
+          path: .test-output/output.svg
+          if-no-files-found: error

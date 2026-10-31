@@ -1,9 +1,0 @@
-name: Check GitHub Actions with Actionlint
-description: Run Check GitHub Actions with Actionlint for this repository
-runs:
-  using: composite
-  steps:
-    - name: Run Actionlint
-      uses: docker://rhysd/actionlint:1.7.12 # zizmor: ignore[unpinned-uses]
-      with:
-        args: -color

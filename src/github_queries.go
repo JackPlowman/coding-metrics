@@ -38,6 +38,10 @@ func getGitHubUserInfo() *GitHubUserInfo {
 	if err != nil {
 		zap.L().Fatal("Failed to create request for GitHub user info", zap.Error(err))
 	}
+	if userName := os.Getenv("INPUT_GITHUB_USERNAME"); userName != "" {
+		req.URL.Path = "/users/" + userName
+		req.URL.RawPath = "/users/" + url.PathEscape(userName)
+	}
 	req.Header.Set("Authorization", bearerPrefix+os.Getenv("INPUT_GITHUB_TOKEN"))
 
 	client := &http.Client{}
@@ -52,7 +56,7 @@ func getGitHubUserInfo() *GitHubUserInfo {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		zap.L().Error("GitHub API returned non-200 status", zap.Int("status", resp.StatusCode))
+		zap.L().Fatal("GitHub API returned non-200 status", zap.Int("status", resp.StatusCode))
 	}
 
 	var user GitHubUserInfo
