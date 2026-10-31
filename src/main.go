@@ -34,6 +34,11 @@ func initLogger() (*zap.Logger, error) {
 
 // main is the entry point for the application.
 func main() {
+	if err := checkGitHubRateLimits(); err != nil {
+		zap.L().Fatal("Cannot generate SVG", zap.Error(err))
+		return
+	}
+
 	initColourProfile()
 
 	svgElements := []svg.Element{}
