@@ -104,13 +104,15 @@ func getColourProfileAt(name string, now time.Time) ColourProfile {
 		zap.L().Warn("Colour profile not found, using default",
 			zap.String("requested", name),
 			zap.String("using", "default"))
+		normalizedName = "default"
 		profile = colourProfiles["default"]
 	}
 
-	// Match GitHub's Halloween palette across the whole graph, regardless of
-	// each contribution's date. Keep the profile's empty cells and other colours.
+	// Match GitHub's Halloween palette for the default (light) and dark profiles
+	// across the whole graph. Other profiles keep their contribution colours.
 	utc := now.UTC()
-	if utc.Month() == time.October && utc.Day() == 31 {
+	if (normalizedName == "default" || normalizedName == "dark") &&
+		utc.Month() == time.October && utc.Day() == 31 {
 		profile.ContributionLevel1 = "#fac68f"
 		profile.ContributionLevel2 = "#c46212"
 		profile.ContributionLevel3 = "#984b10"

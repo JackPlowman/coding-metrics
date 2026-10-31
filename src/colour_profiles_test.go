@@ -32,7 +32,7 @@ func TestSeasonalContributionColours(t *testing.T) {
 			}
 			for name, original := range colourProfiles {
 				want := original
-				if tt.halloween {
+				if tt.halloween && (name == "default" || name == "dark") {
 					want.ContributionLevel1 = "#fac68f"
 					want.ContributionLevel2 = "#c46212"
 					want.ContributionLevel3 = "#984b10"
@@ -55,7 +55,11 @@ func TestSeasonalProfileNameResolution(t *testing.T) {
 		time.Date(2026, time.November, 1, 12, 0, 0, 0, time.UTC),
 	} {
 		for _, tt := range []struct{ name, resolved string }{
+			{"default", "default"},
+			{"light", "default"},
 			{" DARK ", "dark"},
+			{" OCEAN ", "ocean"},
+			{" SUNSET ", "sunset"},
 			{"unknown", "default"},
 			{"", "default"},
 		} {

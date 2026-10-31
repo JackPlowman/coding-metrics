@@ -2,10 +2,11 @@
 
 A GitHub Action to generate a SVG badge for your coding metrics.
 
-On 31 October (UTC), both contribution graphs automatically use GitHub's Halloween
-colours across all colour profiles. Empty cells, backgrounds, text, and accents keep
-their selected profile colours. Badges generated on other dates use the usual
-contribution colours; run the action again to refresh an existing SVG.
+On 31 October (UTC), the `default` (light) and `dark` profiles automatically use
+GitHub's Halloween colours in both contribution graphs. The `ocean` and `sunset`
+profiles keep their usual contribution colours. Empty cells, backgrounds, text,
+and accents keep their selected profile colours. Badges generated on other dates
+use the usual contribution colours; run the action again to refresh an existing SVG.
 
 ## Table of Contents
 
