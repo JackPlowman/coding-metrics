@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -86,21 +87,37 @@ var colourProfiles = map[string]ColourProfile{
 	},
 }
 
-// GetColourProfile returns the colour profile for the given name, or the default profile if not found
+// GetColourProfile returns the requested profile with seasonal contribution colours
+// for today's UTC date, or the default profile if the name is not found.
 func GetColourProfile(name string) ColourProfile {
+	return getColourProfileAt(name, time.Now())
+}
+
+func getColourProfileAt(name string, now time.Time) ColourProfile {
 	// Normalize the name to lowercase for case-insensitive matching
 	normalizedName := strings.ToLower(strings.TrimSpace(name))
 
-	if profile, exists := colourProfiles[normalizedName]; exists {
+	profile, exists := colourProfiles[normalizedName]
+	if exists {
 		zap.L().Info("Using colour profile", zap.String("profile", profile.Name))
-		return profile
+	} else {
+		zap.L().Warn("Colour profile not found, using default",
+			zap.String("requested", name),
+			zap.String("using", "default"))
+		profile = colourProfiles["default"]
 	}
 
-	// If profile not found, log warning and return default
-	zap.L().Warn("Colour profile not found, using default",
-		zap.String("requested", name),
-		zap.String("using", "default"))
-	return colourProfiles["default"]
+	// Match GitHub's Halloween palette across the whole graph, regardless of
+	// each contribution's date. Keep the profile's empty cells and other colours.
+	utc := now.UTC()
+	if utc.Month() == time.October && utc.Day() == 31 {
+		profile.ContributionLevel1 = "#fac68f"
+		profile.ContributionLevel2 = "#c46212"
+		profile.ContributionLevel3 = "#984b10"
+		profile.ContributionLevel4 = "#e3d04f"
+	}
+
+	return profile
 }
 
 // GetAvailableProfiles returns a list of all available colour profile names

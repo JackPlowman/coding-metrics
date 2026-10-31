@@ -38,7 +38,13 @@ func TestContributionGraphsIgnoreAPIColourPalette(t *testing.T) {
 		)
 	}
 
+	profiles := make(map[string]ColourProfile, len(colourProfiles)*2)
 	for name, profile := range colourProfiles {
+		profiles[name] = profile
+		profiles[name+"/halloween"] = getColourProfileAt(name,
+			time.Date(2026, time.October, 31, 12, 0, 0, 0, time.UTC))
+	}
+	for name, profile := range profiles {
 		t.Run(name, func(t *testing.T) {
 			currentColourProfile = profile
 			colours := []string{
