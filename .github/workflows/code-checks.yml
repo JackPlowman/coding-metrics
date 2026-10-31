@@ -39,6 +39,7 @@ jobs:
         run: just format-check
 
         shell: bash
+
   check-markdown-links:
     name: Check Markdown links
     runs-on: ubuntu-latest
@@ -60,6 +61,7 @@ jobs:
           fail_on_error: true
           filter_mode: nofilter
           show_stats: true
+
   pinact-check:
     name: Pinact Check
     runs-on: ubuntu-latest
@@ -83,6 +85,7 @@ jobs:
         uses: suzuki-shunsuke/pinact-action@896d595f299e71d65b9d28349d6956abe144390a # v3.0.0
         with:
           skip_push: "true"
+
   prek-check:
     name: "Validate Prek Git Hooks Configuration"
     runs-on: ubuntu-latest
@@ -109,6 +112,7 @@ jobs:
         run: just prek-check
 
         shell: bash
+
   run-actionlint:
     name: Check GitHub Actions with Actionlint
     runs-on: ubuntu-latest
@@ -124,6 +128,7 @@ jobs:
         run: |
           docker run --rm --volume "$PWD:/github/workspace" --workdir /github/workspace \
             rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color
+
   run-editorconfig-checker:
     name: Check File Formats with EditorConfig Checker
     runs-on: ubuntu-latest
@@ -140,6 +145,7 @@ jobs:
           docker run --rm --volume "$PWD:/github/workspace" --workdir /github/workspace \
             mstruebing/editorconfig-checker@sha256:af556694c3eb0a16b598efbe84c1171d40dfb779fdac6f01b89baedde065556f \
             editorconfig-checker -color -format=github-actions
+
   run-gitleaks:
     name: Check for Secrets with Gitleaks
     runs-on: ubuntu-latest
@@ -163,6 +169,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4.37.0
         with:
           sarif_file: results.sarif
+
   run-grype:
     name: Check for Vulnerabilities with Grype
     runs-on: ubuntu-latest
@@ -189,6 +196,7 @@ jobs:
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           path: "."
+
   run-markdownlint:
     name: "Check Markdown Files with Markdownlint"
     runs-on: ubuntu-latest
@@ -208,6 +216,7 @@ jobs:
             README
             *.md
             **/*.md
+
   run-prek:
     name: "Run Prek pre-commit hook checks"
     runs-on: ubuntu-latest
@@ -229,6 +238,7 @@ jobs:
           prek-version: "0.4.8"
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
   run-prettier:
     name: "Check Code Formatting with Prettier"
     runs-on: ubuntu-latest
@@ -253,6 +263,7 @@ jobs:
         run: just prettier-check
 
         shell: bash
+
   run-trivy:
     name: "Check Vulnerabilities, Secrets, Misconfigurations, and Licenses with Trivy"
     runs-on: ubuntu-latest
@@ -278,6 +289,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4.37.0
         with:
           sarif_file: trivy-results.sarif
+
   run-trufflehog:
     name: Check for Secrets with TruffleHog
     runs-on: ubuntu-latest
@@ -294,6 +306,7 @@ jobs:
         uses: trufflesecurity/trufflehog@27b0417c16317ca9a472a9a8092acce143b49c55 # v3.95.9
         with:
           extra_args: --results=verified,unknown
+
   run-yamllint:
     name: "Check YAML Files with Yamllint"
     runs-on: ubuntu-latest
@@ -315,6 +328,7 @@ jobs:
           yamllint_comment: true
         env:
           GITHUB_ACCESS_TOKEN: ${{ github.token }}
+
   run-zizmor:
     name: Check GitHub Actions with zizmor
     runs-on: ubuntu-latest
@@ -329,10 +343,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Run zizmor 🌈
-        uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
+        uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
         with:
           persona: auditor
           version: 1.31.1
+
   codeql-checks:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
@@ -356,6 +371,7 @@ jobs:
     strategy:
       matrix:
         language: [actions, go]
+
   run-go-format-and-lint-checks:
     name: Run Go Format and Lint Checks
     runs-on: ubuntu-latest
@@ -464,6 +480,7 @@ jobs:
         uses: actions/go-dependency-submission@f35d5c9af13ce9cc32f7930b171e315e878f6921 # v2.0.3
         with:
           go-mod-path: go.mod
+
   test-action:
     name: Test Action
     runs-on: ubuntu-latest
