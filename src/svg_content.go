@@ -573,6 +573,7 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 		Href(svg.String(avatarURL)).
 		Width(svg.Px(24)).Height(svg.Px(24)).
 		X(svg.Px(18)).Y(svg.Px(28)).
+		ClipPath(svg.String("url(#avatar-clip)")).
 		Class(svg.String("avatar"))
 	if avatarImage.Attrs == nil {
 		avatarImage.Attrs = map[string]svg.AttrValue{}
@@ -580,6 +581,12 @@ func generateProfileSection(userInfo *GitHubUserInfo) svg.Element {
 	avatarImage.Attrs["xlink:href"] = svg.String(avatarURL)
 
 	return svg.G().AppendChildren(
+		// Clip the avatar to a circle centred in its 24px square.
+		svg.Defs(
+			svg.ClipPath(svg.Circle().CX(svg.Px(30)).CY(svg.Px(40)).R(svg.Px(12))).
+				ID(svg.String("avatar-clip")),
+		),
+
 		// Use both href variants so SVG consumers with old xlink handling still work.
 		avatarImage,
 
