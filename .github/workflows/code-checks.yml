@@ -125,9 +125,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Run Actionlint
-        run: |
-          docker run --rm --volume "$PWD:/github/workspace" --workdir /github/workspace \
-            rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+        with:
+          version: "1.7.12"
+          flags: -color
 
   run-editorconfig-checker:
     name: Check File Formats with EditorConfig Checker
@@ -140,11 +141,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Set up EditorConfig Checker
+        uses: editorconfig-checker/action-editorconfig-checker@51f63319f592f97930c73d9c46184d20bd206393 # v3.0.0
+        with:
+          version: v4.0.2
       - name: Run EditorConfig Checker
-        run: |
-          docker run --rm --volume "$PWD:/github/workspace" --workdir /github/workspace \
-            mstruebing/editorconfig-checker@sha256:af556694c3eb0a16b598efbe84c1171d40dfb779fdac6f01b89baedde065556f \
-            editorconfig-checker -color -format=github-actions
+        run: editorconfig-checker -color -format=github-actions
 
   run-gitleaks:
     name: Check for Secrets with Gitleaks
