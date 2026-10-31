@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/google/go-github/v61/github"
+	"github.com/google/go-github/v93/github"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
@@ -32,7 +32,11 @@ func commitSVGChanges(file *os.File) {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	tc := oauth2.NewClient(ctx, ts)
-	gh := github.NewClient(tc)
+	gh, err := github.NewClient(github.WithHTTPClient(tc))
+	if err != nil {
+		zap.L().Fatal("Failed to create GitHub client", zap.Error(err))
+		return
+	}
 
 	// Get current file SHA (omit if creating a new file)
 	fileContent, _, _, _ := gh.Repositories.GetContents(
@@ -53,10 +57,10 @@ func commitSVGChanges(file *os.File) {
 		return
 	}
 	opts := &github.RepositoryContentFileOptions{
-		Message: github.String(commitMessage),
+		Message: new(commitMessage),
 		Content: contentBytes,
 		SHA:     sha, // nil if new file
-		Branch:  github.String(branch),
+		Branch:  new(branch),
 		// Leave Author/Committer nil to get a bot-verified signature
 	}
 	_, _, err = gh.Repositories.CreateFile(ctx, owner, repo, path, opts)

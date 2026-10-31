@@ -19,7 +19,7 @@ This is a **GitHub Action** that generates SVG badges for GitHub coding metrics.
 - `github_queries.go` - REST API calls and GraphQL queries for user stats (commits, PRs, issues, etc.)
 - `github_graphql.go` - GraphQL client implementation with error handling
 - `svg_content.go` - SVG generation using `github.com/twpayne/go-svg` - creates profile section, stats rows, and contribution graphs
-- `commit.go` - Uses `github.com/go-github/v61` to commit generated SVG to the target repo
+- `commit.go` - Uses `github.com/google/go-github/v93` to commit generated SVG to the target repo
 
 ## Development Workflow
 
@@ -68,7 +68,7 @@ All inputs prefixed with `INPUT_` (GitHub Actions convention):
 
 Two-stage build in `Dockerfile`:
 
-1. **builder** - Go 1.25.3-alpine, uses build caches for `/go/pkg/mod` and `/root/.cache/go-build`
+1. **builder** - Go 1.27.3-alpine, uses build caches for `/go/pkg/mod` and `/root/.cache/go-build`
 2. **runner** - Alpine 3.22, non-root user (appuser), minimal attack surface
 
 Runs as UID 10001, includes HEALTHCHECK via `pidof`.

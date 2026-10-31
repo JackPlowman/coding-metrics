@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -64,12 +66,12 @@ func TestMergeContributionCalendarsDeduplicatesAndFillsMissingDays(t *testing.T)
 	from := time.Date(2026, time.July, 12, 0, 0, 0, 0, time.UTC)
 	to := from.AddDate(0, 0, 7)
 	left := &ContributionCalendar{Weeks: []ContributionWeek{{ContributionDays: []ContributionDay{
-		{Date: "2026-07-12", ContributionCount: 2, Color: githubContribLow},
-		{Date: "2026-07-13", ContributionCount: 3, Color: githubContribMediumLow},
+		{Date: "2026-07-12", ContributionCount: 2, ContributionLevel: "FIRST_QUARTILE"},
+		{Date: "2026-07-13", ContributionCount: 3, ContributionLevel: "SECOND_QUARTILE"},
 	}}}}
 	right := &ContributionCalendar{Weeks: []ContributionWeek{{ContributionDays: []ContributionDay{
-		{Date: "2026-07-13", ContributionCount: 4, Color: githubContribMediumHigh},
-		{Date: "2026-07-19", ContributionCount: 5, Color: githubContribHigh},
+		{Date: "2026-07-13", ContributionCount: 4, ContributionLevel: "THIRD_QUARTILE"},
+		{Date: "2026-07-19", ContributionCount: 5, ContributionLevel: "FOURTH_QUARTILE"},
 	}}}}
 
 	got := mergeContributionCalendars(from, to, left, right)
@@ -85,9 +87,9 @@ func TestMergeContributionCalendarsDeduplicatesAndFillsMissingDays(t *testing.T)
 	if got.Weeks[0].ContributionDays[1].ContributionCount != 4 {
 		t.Fatalf("expected later duplicate to win, got %#v", got.Weeks[0].ContributionDays[1])
 	}
-	if got.Weeks[0].ContributionDays[2].Color != githubContribNone {
+	if got.Weeks[0].ContributionDays[2].ContributionLevel != "NONE" {
 		t.Fatalf(
-			"expected missing day to use the no-contribution colour, got %#v",
+			"expected missing day to use the no-contribution level, got %#v",
 			got.Weeks[0].ContributionDays[2],
 		)
 	}
@@ -99,5 +101,56 @@ func TestIsGraphQLResourceLimitError(t *testing.T) {
 	}
 	if isGraphQLResourceLimitError(errors.New("bad credentials")) {
 		t.Fatal("did not expect authentication error to be recognized as a resource limit")
+	}
+}
+
+type contributionRoundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f contributionRoundTripFunc) RoundTrip(request *http.Request) (*http.Response, error) {
+	return f(request)
+}
+
+func TestQueryContributionCalendarRequestsLevels(t *testing.T) {
+	previousTransport := http.DefaultTransport
+	t.Cleanup(func() { http.DefaultTransport = previousTransport })
+	http.DefaultTransport = contributionRoundTripFunc(
+		func(request *http.Request) (*http.Response, error) {
+			var body GitHubGraphQLRequest
+			if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(body.Query, "contributionLevel") {
+				t.Error(
+					"calendar query must request contribution levels independently of API colours",
+				)
+			}
+			if body.Variables["from"] != "2026-10-31T00:00:00Z" ||
+				body.Variables["to"] != "2026-10-31T23:59:59Z" {
+				t.Errorf("unexpected calendar range: %v", body.Variables)
+			}
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body: io.NopCloser(strings.NewReader(`{"data":{"user":{"contributionsCollection":{
+				"contributionCalendar":{"totalContributions":12,"weeks":[{"contributionDays":[
+					{"date":"2026-10-31","contributionCount":12,"contributionLevel":"FOURTH_QUARTILE"}
+				]}]}
+			}}}}`)),
+			}, nil
+		},
+	)
+
+	date := time.Date(2026, time.October, 31, 0, 0, 0, 0, time.UTC)
+	calendar, err := queryContributionCalendar("example", &date, &date)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if calendar.TotalContributions != 12 || len(calendar.Weeks) != 1 ||
+		len(calendar.Weeks[0].ContributionDays) != 1 {
+		t.Fatalf("unexpected contribution calendar: %#v", calendar)
+	}
+	day := calendar.Weeks[0].ContributionDays[0]
+	if day.Date != "2026-10-31" || day.ContributionCount != 12 ||
+		day.ContributionLevel != "FOURTH_QUARTILE" {
+		t.Fatalf("calendar query did not preserve contribution data: %#v", day)
 	}
 }

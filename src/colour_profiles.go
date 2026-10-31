@@ -112,30 +112,19 @@ func GetAvailableProfiles() []string {
 	return profiles
 }
 
-// GetContributionColour returns the appropriate contribution colour based on the contribution level
-// from the GitHub API colour string
-func (cp ColourProfile) GetContributionColour(apiColour string) string {
-	// GitHub API returns colours like:
-	// #ebedf0 (no contributions)
-	// #9be9a8 (low)
-	// #40c463 (medium-low)
-	// #30a14e (medium-high)
-	// #216e39 (high)
-
-	switch apiColour {
-	case githubContribNone:
-		return cp.ContributionLevel0
-	case githubContribLow:
+// GetContributionColour maps contribution intensity to the selected profile.
+// API hex colours can change with GitHub's seasonal palettes.
+func (cp ColourProfile) GetContributionColour(level int) string {
+	switch level {
+	case 1:
 		return cp.ContributionLevel1
-	case githubContribMediumLow:
+	case 2:
 		return cp.ContributionLevel2
-	case githubContribMediumHigh:
+	case 3:
 		return cp.ContributionLevel3
-	case githubContribHigh:
+	case 4:
 		return cp.ContributionLevel4
 	default:
-		// If we get an unexpected colour, try to map it intelligently
-		// or just return level 0 (no contributions)
 		return cp.ContributionLevel0
 	}
 }
