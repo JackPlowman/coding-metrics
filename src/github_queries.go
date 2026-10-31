@@ -547,9 +547,9 @@ func getLanguageStats(userName string) []LanguageStat {
 
 // ContributionDay represents a single day's contribution data
 type ContributionDay struct {
-	Date              string
-	ContributionCount int
-	Color             string
+	Date              string `json:"date"`
+	ContributionCount int    `json:"contributionCount"`
+	ContributionLevel string `json:"contributionLevel"`
 }
 
 // ContributionCalendar represents the contribution calendar data
@@ -629,7 +629,7 @@ func queryContributionCalendar(
 						contributionDays {
 							date
 							contributionCount
-							color
+							contributionLevel
 						}
 					}
 				}
@@ -740,7 +740,7 @@ func mergeContributionCalendars(
 		dateString := date.Format("2006-01-02")
 		day, ok := byDate[dateString]
 		if !ok {
-			day = ContributionDay{Date: dateString, Color: githubContribNone}
+			day = ContributionDay{Date: dateString, ContributionLevel: "NONE"}
 		}
 		merged.TotalContributions += day.ContributionCount
 		week.ContributionDays = append(week.ContributionDays, day)

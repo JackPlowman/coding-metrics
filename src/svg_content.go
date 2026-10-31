@@ -133,7 +133,8 @@ func generateYearContributionCalendarSection(
 			layout.OriginY,
 			layout.TileW,
 			layout.TileH,
-		)...)
+		)...,
+	)
 	elements = append(elements, generateIsometricExtrusions(weeks, cols, rows, layout)...)
 	elements = append(elements, generateContributionCalendarNotes(stats, notesX, 330, 18)...)
 
@@ -164,17 +165,15 @@ func toSVGPoints(points []point) svg.Points {
 	return out
 }
 
-func contributionLevelFromAPIColour(apiColour string) int {
-	switch apiColour {
-	case githubContribNone:
-		return 0
-	case githubContribLow:
+func contributionLevelFromAPI(level string) int {
+	switch level {
+	case "FIRST_QUARTILE":
 		return 1
-	case githubContribMediumLow:
+	case "SECOND_QUARTILE":
 		return 2
-	case githubContribMediumHigh:
+	case "THIRD_QUARTILE":
 		return 3
-	case githubContribHigh:
+	case "FOURTH_QUARTILE":
 		return 4
 	default:
 		return 0
@@ -263,10 +262,9 @@ func generateIsometricBaseTiles(
 				continue
 			}
 			day := weeks[col].ContributionDays[row]
-			baseColour := currentColourProfile.ContributionLevel0
-			if day.Color != "" {
-				baseColour = currentColourProfile.GetContributionColour(day.Color)
-			}
+			baseColour := currentColourProfile.GetContributionColour(
+				contributionLevelFromAPI(day.ContributionLevel),
+			)
 			x := originX + (float64(col+row) * tileW / 2.0)
 			y := originY + (float64(col) * tileH / 2.0) - (float64(row) * tileH / 2.0)
 			baseDiamond := diamondPoints(x, y, tileW, tileH)
@@ -307,7 +305,7 @@ func generateIsometricExtrusions(
 				continue
 			}
 			day := weeks[col].ContributionDays[row]
-			if contributionLevelFromAPIColour(day.Color) <= 0 {
+			if contributionLevelFromAPI(day.ContributionLevel) <= 0 {
 				continue
 			}
 			x := layout.OriginX + (float64(col+row) * layout.TileW / 2.0)
@@ -339,7 +337,7 @@ func contributionLevelAt(weeks []ContributionWeek, col, row int) int {
 	if row < 0 || row >= len(weeks[col].ContributionDays) {
 		return 0
 	}
-	return contributionLevelFromAPIColour(weeks[col].ContributionDays[row].Color)
+	return contributionLevelFromAPI(weeks[col].ContributionDays[row].ContributionLevel)
 }
 
 func maybeAppendExtrusion(
@@ -350,7 +348,7 @@ func maybeAppendExtrusion(
 	col, row int,
 	layout isometricLayout,
 ) {
-	level := contributionLevelFromAPIColour(day.Color)
+	level := contributionLevelFromAPI(day.ContributionLevel)
 	if level <= 0 {
 		return
 	}
@@ -370,7 +368,7 @@ func maybeAppendExtrusion(
 		height = layout.MaxHeight
 	}
 
-	baseColour := currentColourProfile.GetContributionColour(day.Color)
+	baseColour := currentColourProfile.GetContributionColour(level)
 	// Single-colour cubes (no per-face shading)
 	leftColour := baseColour
 	rightColour := baseColour
@@ -764,9 +762,9 @@ func generateMonthContributionSquares(
 
 		// Get colour for this day if we have data
 		colour := currentColourProfile.ContributionLevel0 // Default: no contributions
-		if dayIndex < len(monthContributions) && monthContributions[dayIndex].Color != "" {
-			// Map the GitHub API colour to the current colour profile
-			colour = currentColourProfile.GetContributionColour(monthContributions[dayIndex].Color)
+		if dayIndex < len(monthContributions) {
+			level := contributionLevelFromAPI(monthContributions[dayIndex].ContributionLevel)
+			colour = currentColourProfile.GetContributionColour(level)
 		}
 
 		squares = append(squares, svg.Rect().
