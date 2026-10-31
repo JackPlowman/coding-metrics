@@ -1,0 +1,29 @@
+name: Label Pull Request
+description: Run Label Pull Request for this repository
+inputs:
+  github-token:
+    description: GitHub token for this job
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Label Pull Request
+      uses: actions/labeler@b8dd2d9be0f68b860e7dae5dae7d772984eacd6d # v6.2.0
+      with:
+        repo-token: "${{ inputs.github-token }}"
+        configuration-path: .github/tool-configurations/labeller.yml
+        sync-labels: true
+    - name: Add Size Labels
+      uses: pascalgn/size-label-action@56b489b027932ec0cf60438a1a5f1a19c8fc71ff # v0.5.7
+      env:
+        GITHUB_TOKEN: "${{ inputs.github-token }}"
+      with:
+        sizes: >
+          {
+            "0": "XS",
+            "40": "S",
+            "100": "M",
+            "200": "L",
+            "800": "XL",
+            "2000": "XXL"
+          }

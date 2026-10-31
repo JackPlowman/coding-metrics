@@ -1,0 +1,18 @@
+name: Check Markdown links
+description: Run Check Markdown links for this repository
+inputs:
+  github-token:
+    description: GitHub token for this job
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Check Markdown links
+      uses: UmbrellaDocs/action-linkspector@6c637d70424624231467a4ca918be54fa3b792d0 # v1.5.4
+      with:
+        github_token: ${{ inputs.github-token }}
+        config_file: .github/tool-configurations/.linkspector.yml
+        reporter: github-pr-review
+        fail_on_error: true
+        filter_mode: nofilter
+        show_stats: true

@@ -1,0 +1,19 @@
+name: Check for Vulnerabilities with Grype
+description: Run Check for Vulnerabilities with Grype for this repository
+runs:
+  using: composite
+  steps:
+    - name: Scan current project
+      id: scan
+      uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+      with:
+        path: "."
+      continue-on-error: true
+    - name: Upload Anchore scan SARIF report
+      uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4.37.0
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarif }}
+    - name: Scan current project
+      uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+      with:
+        path: "."

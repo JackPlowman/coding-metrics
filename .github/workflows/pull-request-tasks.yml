@@ -22,10 +22,33 @@ jobs:
         with:
           allowed_prefixes: "feat: ,fix: ,bug: ,ci: ,refactor: ,docs: ,build: ,chore(,deps(,chore: ,feat!: ,fix!: ,refactor!: ,test: ,build(deps): " # title should start with the given prefix
 
-  common-pull-request-tasks:
-    name: Common Pull Request Tasks
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
     permissions:
-      pull-requests: write # For writing labels and comments on PRs
-    uses: JackPlowman/reusable-workflows/.github/workflows/common-pull-request-tasks.yml@52b5547a80bbde1f87300170d9f129d7829f17c6 # v2026.07.11.02
-    secrets:
-      workflow_github_token: ${{ secrets.GITHUB_TOKEN }}
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Dependency Review
+        uses: ./.github/actions/dependency-review
+  labeller:
+    name: Label Pull Request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Label Pull Request
+        uses: ./.github/actions/label-pull-request
+        with:
+          github-token: ${{ github.token }}

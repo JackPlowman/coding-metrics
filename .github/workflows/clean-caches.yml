@@ -13,9 +13,18 @@ permissions: {}
 
 jobs:
   clean-caches:
-    name: Clean Caches
+    name: Clean GitHub Action Caches
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-    uses: JackPlowman/reusable-workflows/.github/workflows/common-clean-caches.yml@52b5547a80bbde1f87300170d9f129d7829f17c6 # v2026.07.11.02
-    secrets:
-      workflow_github_token: ${{ secrets.GH_TOKEN }}
+      actions: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Clean GitHub Action Caches
+        uses: ./.github/actions/clean-caches
+        with:
+          github-token: ${{ github.token }}

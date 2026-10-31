@@ -1,0 +1,18 @@
+name: "Check YAML Files with Yamllint"
+description: Run Check YAML Files with Yamllint for this repository
+inputs:
+  github-token:
+    description: GitHub token for this job
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: "Yamllint"
+      uses: karancode/yamllint-github-action@4052d365f09b8d34eb552c363d1141fd60e2aeb2 # v3.0.0
+      with:
+        yamllint_file_or_dir: "."
+        yamllint_config_filepath: ".github/tool-configurations/.yaml-lint.yml"
+        yamllint_strict: true
+        yamllint_comment: true
+      env:
+        GITHUB_ACCESS_TOKEN: ${{ inputs.github-token }}

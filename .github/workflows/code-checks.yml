@@ -19,29 +19,233 @@ env:
   FORCE_COLOR: 1
 
 jobs:
-  common-code-checks:
-    name: Common Code Checks
+  check-justfile-format:
+    name: Check Justfile Format
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: read # Allow the workflow to read actions metadata
-      pull-requests: write # Allow the workflow to create and modify pull request comments
-      security-events: write # Allow the workflow to upload analysis results
-    uses: JackPlowman/reusable-workflows/.github/workflows/common-code-checks.yml@52b5547a80bbde1f87300170d9f129d7829f17c6 # v2026.07.11.02
-    secrets:
-      workflow_github_token: ${{ secrets.GITHUB_TOKEN }}
-
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check Justfile Format
+        uses: ./.github/actions/check-justfile-format
+  check-markdown-links:
+    name: Check Markdown links
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check Markdown links
+        uses: ./.github/actions/check-markdown-links
+        with:
+          github-token: ${{ github.token }}
+  pinact-check:
+    name: Pinact Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Pinact Check
+        uses: ./.github/actions/pinact-check
+  prek-check:
+    name: "Validate Prek Git Hooks Configuration"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: "Validate Prek Git Hooks Configuration"
+        uses: ./.github/actions/prek-check
+  run-actionlint:
+    name: Check GitHub Actions with Actionlint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check GitHub Actions with Actionlint
+        uses: ./.github/actions/run-actionlint
+  run-editorconfig-checker:
+    name: Check File Formats with EditorConfig Checker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check File Formats with EditorConfig Checker
+        uses: ./.github/actions/run-editorconfig-checker
+  run-gitleaks:
+    name: Check for Secrets with Gitleaks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check for Secrets with Gitleaks
+        uses: ./.github/actions/run-gitleaks
+  run-grype:
+    name: Check for Vulnerabilities with Grype
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check for Vulnerabilities with Grype
+        uses: ./.github/actions/run-grype
+  run-markdownlint:
+    name: "Check Markdown Files with Markdownlint"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: "Check Markdown Files with Markdownlint"
+        uses: ./.github/actions/run-markdownlint
+  run-prek:
+    name: "Run Prek pre-commit hook checks"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: "Run Prek pre-commit hook checks"
+        uses: ./.github/actions/run-prek
+  run-prettier:
+    name: "Check Code Formatting with Prettier"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: "Check Code Formatting with Prettier"
+        uses: ./.github/actions/run-prettier
+  run-trivy:
+    name: "Check Vulnerabilities, Secrets, Misconfigurations, and Licenses with Trivy"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: "Check Vulnerabilities, Secrets, Misconfigurations, and Licenses with Trivy"
+        uses: ./.github/actions/run-trivy
+  run-trufflehog:
+    name: Check for Secrets with TruffleHog
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check for Secrets with TruffleHog
+        uses: ./.github/actions/run-trufflehog
+  run-yamllint:
+    name: "Check YAML Files with Yamllint"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: "Check YAML Files with Yamllint"
+        uses: ./.github/actions/run-yamllint
+        with:
+          github-token: ${{ github.token }}
+  run-zizmor:
+    name: Check GitHub Actions with zizmor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check GitHub Actions with zizmor
+        uses: ./.github/actions/run-zizmor
   codeql-checks:
     name: CodeQL Analysis
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write # Allow the workflow to upload analysis results
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Analyse code
+        uses: ./.github/actions/codeql-analysis
+        with:
+          language: ${{ matrix.language }}
     strategy:
       matrix:
         language: [actions, go]
-    uses: JackPlowman/reusable-workflows/.github/workflows/codeql-analysis.yml@52b5547a80bbde1f87300170d9f129d7829f17c6 # v2026.07.11.02
-    with:
-      language: ${{ matrix.language }}
-
   run-go-format-and-lint-checks:
     name: Run Go Format and Lint Checks
     runs-on: ubuntu-latest

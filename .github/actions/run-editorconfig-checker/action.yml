@@ -1,0 +1,9 @@
+name: Check File Formats with EditorConfig Checker
+description: Run Check File Formats with EditorConfig Checker for this repository
+runs:
+  using: composite
+  steps:
+    - name: Run EditorConfig Checker
+      uses: docker://mstruebing/editorconfig-checker:v3.6.1 # zizmor: ignore[unpinned-uses]
+      with:
+        args: editorconfig-checker -color -format=github-actions
