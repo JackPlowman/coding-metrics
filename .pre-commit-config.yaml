@@ -64,13 +64,11 @@ repos:
         args: ["format-check"]
         files: "(?i)(^justfile$|\\.just$)"
         pass_filenames: false
-      - id: pinact
-        name: Pinact Check
+      - id: actions-lock
+        name: Verify Actions Lockfile Coverage
         language: golang
-        entry: pinact
+        entry: gh-actions-lock --verify-local
         additional_dependencies:
-          - github.com/suzuki-shunsuke/pinact/v5/cmd/pinact@v5.0.2
-        args: ["run", "--verify", "--check"]
-        files: "^\\.github/(workflows|actions)/.*\\.ya?ml$|(^|/)action\\.ya?ml$"
+          - github.com/github/gh-actions-lock/cmd/gh-actions-lock@v0.4.1
+        files: '^\.github/workflows/(.*\.ya?ml|actions\.lock)$|(^|/)action\.ya?ml$'
         pass_filenames: false
-        language_version: "go1.27.4"

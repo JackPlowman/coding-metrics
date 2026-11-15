@@ -62,30 +62,6 @@ jobs:
           filter_mode: nofilter
           show_stats: true
 
-  pinact-check:
-    name: Pinact Check
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Check actions are pinned (with config)
-        if: ${{ hashFiles('.github/tool-configurations/pinact.yml') != '' }}
-        uses: suzuki-shunsuke/pinact-action@v3.1.0
-        with:
-          skip_push: "true"
-        env:
-          PINACT_CONFIG: .github/tool-configurations/pinact.yml
-      - name: Check actions are pinned (without config)
-        if: ${{ hashFiles('.github/tool-configurations/pinact.yml') == '' }}
-        uses: suzuki-shunsuke/pinact-action@v3.1.0
-        with:
-          skip_push: "true"
-
   prek-check:
     name: "Validate Prek Git Hooks Configuration"
     runs-on: ubuntu-latest
