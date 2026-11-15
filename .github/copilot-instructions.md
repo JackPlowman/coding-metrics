@@ -68,7 +68,7 @@ All inputs prefixed with `INPUT_` (GitHub Actions convention):
 
 Two-stage build in `Dockerfile`:
 
-1. **builder** - Go 1.27.3-alpine, uses build caches for `/go/pkg/mod` and `/root/.cache/go-build`
+1. **builder** - Go 1.27.4-alpine, uses build caches for `/go/pkg/mod` and `/root/.cache/go-build`
 2. **runner** - Alpine 3.22, non-root user (appuser), minimal attack surface
 
 Runs as UID 10001, includes HEALTHCHECK via `pidof`.
