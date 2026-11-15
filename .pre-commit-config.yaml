@@ -68,6 +68,7 @@ repos:
         name: Verify Actions Lockfile Coverage
         language: golang
         entry: gh-actions-lock --verify-local
+        language_version: "go1.27.4"
         additional_dependencies:
           - github.com/github/gh-actions-lock/cmd/gh-actions-lock@v0.4.1
         files: '^\.github/workflows/(.*\.ya?ml|actions\.lock)$|(^|/)action\.ya?ml$'

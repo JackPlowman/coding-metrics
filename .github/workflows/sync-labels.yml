@@ -23,12 +23,12 @@ jobs:
       pull-requests: write # Create PR review comments and manage PR labels.
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Sync labels
-        uses: micnncim/action-label-syncer@v1.3.0
+        uses: micnncim/action-label-syncer@3abd5ab72fda571e69fffd97bd4e0033dd5f495c # v1.3.0
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}

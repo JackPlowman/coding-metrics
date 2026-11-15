@@ -4,36 +4,36 @@
 version: 'v0.0.3'
 workflows:
     '.github/workflows/code-checks.yml':
-        - 'actions/checkout@v7.0.1'
-        - 'actions/go-dependency-submission@v2.0.3'
-        - 'actions/setup-go@v7.0.0'
-        - 'actions/setup-node@v7.1.0'
-        - 'actions/upload-artifact@v7.0.2'
-        - 'anchore/scan-action@v7.4.2'
-        - 'aquasecurity/trivy-action@v0.36.0'
-        - 'davidanson/markdownlint-cli2-action@v25.0.0'
-        - 'editorconfig-checker/action-editorconfig-checker@v3.0.0'
-        - 'extractions/setup-just@v4.0.0'
-        - 'github/codeql-action@v4.39.3'
-        - 'gitleaks/gitleaks-action@v3.0.0'
-        - 'golangci/golangci-lint-action@v9.3.0'
-        - 'j178/prek-action@v3.1.0'
-        - 'karancode/yamllint-github-action@v3.0.0'
-        - 'raven-actions/actionlint@v2.2.0'
-        - 'trufflesecurity/trufflehog@v3.99.9'
-        - 'umbrelladocs/action-linkspector@v1.5.5'
-        - 'zizmorcore/zizmor-action@v0.8.1'
+        - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        - 'actions/go-dependency-submission@f35d5c9af13ce9cc32f7930b171e315e878f6921'
+        - 'actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e'
+        - 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1'
+        - 'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9'
+        - 'anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439'
+        - 'aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25'
+        - 'davidanson/markdownlint-cli2-action@696eb3f2509270d7b882d2aa68347bc676e7af34'
+        - 'editorconfig-checker/action-editorconfig-checker@51f63319f592f97930c73d9c46184d20bd206393'
+        - 'extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3'
+        - 'github/codeql-action@33d7b85da1a04171e211befe2c739303b9a4c066'
+        - 'gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e'
+        - 'golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a'
+        - 'j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d'
+        - 'karancode/yamllint-github-action@4052d365f09b8d34eb552c363d1141fd60e2aeb2'
+        - 'raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7'
+        - 'trufflesecurity/trufflehog@3bd2b5887eb0efb8fa18bfd1d296032924e4ffdc'
+        - 'umbrelladocs/action-linkspector@568ec8d29fa92b31fd9ea5381e155c51e922af83'
+        - 'zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd'
     '.github/workflows/pull-request-tasks.yml':
-        - 'actions/checkout@v7.0.1'
-        - 'actions/dependency-review-action@v5.0.0'
-        - 'actions/labeler@v7.0.0'
-        - 'deepakputhraya/action-pr-title@v1.0.2'
-        - 'pascalgn/size-label-action@v0.5.7'
+        - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        - 'actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294'
+        - 'actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13'
+        - 'deepakputhraya/action-pr-title@3864bebc79c5f829d25dd42d3c6579d040b0ef16'
+        - 'pascalgn/size-label-action@56b489b027932ec0cf60438a1a5f1a19c8fc71ff'
     '.github/workflows/sync-labels.yml':
-        - 'actions/checkout@v7.0.1'
-        - 'micnncim/action-label-syncer@v1.3.0'
+        - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        - 'micnncim/action-label-syncer@3abd5ab72fda571e69fffd97bd4e0033dd5f495c'
     '.github/workflows/verify-actions-lock.yml':
-        - 'actions/checkout@v7.0.1'
+        - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
 dependencies:
     'actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae':
         ref: 'v5.0.5'
@@ -45,17 +45,17 @@ dependencies:
         commit: 'sha1-9255dc7a253b0ccc959486e2bca901246202afeb'
         owner_id: 44036562
         repo_id: 215566462
+    'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1':
+        ref: 'v7.0.1'
+        commit: 'sha1-3d3c42e5aac5ba805825da76410c181273ba90b1'
+        owner_id: 44036562
+        repo_id: 197814629
     'actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8':
         ref: 'v6.0.1'
         commit: 'sha1-8e8c483db84b4bee98b60c0593521ed34d9990e8'
         owner_id: 44036562
         repo_id: 197814629
-    'actions/checkout@v7.0.1':
-        ref: 'v7.0.1'
-        commit: 'sha1-3d3c42e5aac5ba805825da76410c181273ba90b1'
-        owner_id: 44036562
-        repo_id: 197814629
-    'actions/dependency-review-action@v5.0.0':
+    'actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294':
         ref: 'v5.0.0'
         commit: 'sha1-a1d282b36b6f3519aa1f3fc636f609c47dddb294'
         owner_id: 44036562
@@ -65,37 +65,37 @@ dependencies:
         commit: 'sha1-3a2844b7e9c422d3c10d287c895573f7108da1b3'
         owner_id: 44036562
         repo_id: 205262760
-    'actions/go-dependency-submission@v2.0.3':
+    'actions/go-dependency-submission@f35d5c9af13ce9cc32f7930b171e315e878f6921':
         ref: 'v2.0.3'
         commit: 'sha1-f35d5c9af13ce9cc32f7930b171e315e878f6921'
         owner_id: 44036562
         repo_id: 503437039
-    'actions/labeler@v7.0.0':
+    'actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13':
         ref: 'v7.0.0'
         commit: 'sha1-bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13'
         owner_id: 44036562
         repo_id: 177139928
-    'actions/setup-go@v7.0.0':
+    'actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e':
         ref: 'v7.0.0'
         commit: 'sha1-b7ad1dad31e06c5925ef5d2fc7ad053ef454303e'
         owner_id: 44036562
         repo_id: 192624594
+    'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1':
+        ref: 'v7.1.0'
+        commit: 'sha1-949feb2413d6458794dcd2491c4babbbce0c15c1'
+        owner_id: 44036562
+        repo_id: 189476904
     'actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444':
         ref: 'v5.0.0'
         commit: 'sha1-a0853c24544627f65ddf259abe73b1d18a591444'
         owner_id: 44036562
         repo_id: 189476904
-    'actions/setup-node@v7.1.0':
-        ref: 'v7.1.0'
-        commit: 'sha1-949feb2413d6458794dcd2491c4babbbce0c15c1'
-        owner_id: 44036562
-        repo_id: 189476904
-    'actions/upload-artifact@v7.0.2':
+    'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9':
         ref: 'v7.0.2'
         commit: 'sha1-cf430e030ddbb5b0abf93d22962f4752f3646cd9'
         owner_id: 44036562
         repo_id: 192625955
-    'anchore/scan-action@v7.4.2':
+    'anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439':
         ref: 'v7.4.2'
         commit: 'sha1-27805bf3b4e84b4a5c980df22ed233c00390a439'
         owner_id: 16208487
@@ -108,7 +108,7 @@ dependencies:
         uses:
             - 'actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb'
             - 'actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8'
-    'aquasecurity/trivy-action@v0.36.0':
+    'aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25':
         ref: 'v0.36.0'
         commit: 'sha1-ed142fd0673e97e23eac54620cfb913e5ce36c25'
         owner_id: 12783832
@@ -116,17 +116,17 @@ dependencies:
         uses:
             - 'actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae'
             - 'aquasecurity/setup-trivy@3fb12ec12f41e471780db15c232d5dd185dcb514'
-    'davidanson/markdownlint-cli2-action@v25.0.0':
+    'davidanson/markdownlint-cli2-action@696eb3f2509270d7b882d2aa68347bc676e7af34':
         ref: 'v25.0.0'
         commit: 'sha1-696eb3f2509270d7b882d2aa68347bc676e7af34'
         owner_id: 1828270
         repo_id: 329203602
-    'deepakputhraya/action-pr-title@v1.0.2':
+    'deepakputhraya/action-pr-title@3864bebc79c5f829d25dd42d3c6579d040b0ef16':
         ref: 'v1.0.2'
         commit: 'sha1-3864bebc79c5f829d25dd42d3c6579d040b0ef16'
         owner_id: 5249282
         repo_id: 219957595
-    'editorconfig-checker/action-editorconfig-checker@v3.0.0':
+    'editorconfig-checker/action-editorconfig-checker@51f63319f592f97930c73d9c46184d20bd206393':
         ref: 'v3.0.0'
         commit: 'sha1-51f63319f592f97930c73d9c46184d20bd206393'
         owner_id: 26415196
@@ -136,54 +136,54 @@ dependencies:
         commit: 'sha1-0551596312d4008a6dfbc4d3c38fa20eaef46d2d'
         owner_id: 64203070
         repo_id: 341105718
-    'extractions/setup-just@v4.0.0':
+    'extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3':
         ref: 'v4.0.0'
         commit: 'sha1-53165ef7e734c5c07cb06b3c8e7b647c5aa16db3'
         owner_id: 64203070
         repo_id: 258510356
         uses:
             - 'extractions/setup-crate@0551596312d4008a6dfbc4d3c38fa20eaef46d2d'
+    'github/codeql-action@33d7b85da1a04171e211befe2c739303b9a4c066':
+        ref: 'v4.39.3'
+        commit: 'sha1-33d7b85da1a04171e211befe2c739303b9a4c066'
+        owner_id: 9919
+        repo_id: 259445878
     'github/codeql-action@9b3254085494b55a0f7c4c2b3d2d52cc712ce370':
         ref: 'v4.39.1'
         commit: 'sha1-9b3254085494b55a0f7c4c2b3d2d52cc712ce370'
         owner_id: 9919
         repo_id: 259445878
-    'github/codeql-action@v4.39.3':
-        ref: 'v4.39.3'
-        commit: 'sha1-33d7b85da1a04171e211befe2c739303b9a4c066'
-        owner_id: 9919
-        repo_id: 259445878
-    'gitleaks/gitleaks-action@v3.0.0':
+    'gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e':
         ref: 'v3.0.0'
         commit: 'sha1-e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e'
         owner_id: 90395851
         repo_id: 242854909
-    'golangci/golangci-lint-action@v9.3.0':
+    'golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a':
         ref: 'v9.3.0'
         commit: 'sha1-ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a'
         owner_id: 35628013
         repo_id: 232539879
-    'j178/prek-action@v3.1.0':
+    'j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d':
         ref: 'v3.1.0'
         commit: 'sha1-44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d'
         owner_id: 10510431
         repo_id: 1052387486
-    'karancode/yamllint-github-action@v3.0.0':
+    'karancode/yamllint-github-action@4052d365f09b8d34eb552c363d1141fd60e2aeb2':
         ref: 'v3.0.0'
         commit: 'sha1-4052d365f09b8d34eb552c363d1141fd60e2aeb2'
         owner_id: 51309792
         repo_id: 229691577
-    'micnncim/action-label-syncer@v1.3.0':
+    'micnncim/action-label-syncer@3abd5ab72fda571e69fffd97bd4e0033dd5f495c':
         ref: 'v1.3.0'
         commit: 'sha1-3abd5ab72fda571e69fffd97bd4e0033dd5f495c'
         owner_id: 21333876
         repo_id: 214834296
-    'pascalgn/size-label-action@v0.5.7':
+    'pascalgn/size-label-action@56b489b027932ec0cf60438a1a5f1a19c8fc71ff':
         ref: 'v0.5.7'
         commit: 'sha1-56b489b027932ec0cf60438a1a5f1a19c8fc71ff'
         owner_id: 432333
         repo_id: 167853969
-    'raven-actions/actionlint@v2.2.0':
+    'raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7':
         ref: 'v2.2.0'
         commit: 'sha1-3d39aea434753780c3b3d4a1a31c854b4dbf49d7'
         owner_id: 132849748
@@ -196,12 +196,12 @@ dependencies:
         commit: 'sha1-d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f'
         owner_id: 48765237
         repo_id: 286005511
-    'trufflesecurity/trufflehog@v3.99.9':
+    'trufflesecurity/trufflehog@3bd2b5887eb0efb8fa18bfd1d296032924e4ffdc':
         ref: 'v3.99.9'
         commit: 'sha1-3bd2b5887eb0efb8fa18bfd1d296032924e4ffdc'
         owner_id: 79229934
         repo_id: 77726177
-    'umbrelladocs/action-linkspector@v1.5.5':
+    'umbrelladocs/action-linkspector@568ec8d29fa92b31fd9ea5381e155c51e922af83':
         ref: 'v1.5.5'
         commit: 'sha1-568ec8d29fa92b31fd9ea5381e155c51e922af83'
         owner_id: 102124447
@@ -210,7 +210,7 @@ dependencies:
             - 'actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae'
             - 'actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444'
             - 'reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f'
-    'zizmorcore/zizmor-action@v0.8.1':
+    'zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd':
         ref: 'v0.8.1'
         commit: 'sha1-45d7276c9ca790aabd705e31ca99c6185c3e76dd'
         owner_id: 210636713

@@ -92,15 +92,15 @@ actionlint-check:
 
 # Generate the GitHub Actions dependency lockfile
 actions-lock:
-    gh actions-lock
+    gh actions-lock --no-narrow
 
 # Verify the workflow dependency lockfile against GitHub
 actions-lock-check:
-    gh actions-lock --verify
+    gh actions-lock --verify --no-narrow
 
 # Refresh workflow dependency pins
 actions-lock-update:
-    gh actions-lock --relock
+    gh actions-lock --relock --no-narrow
 
 # ------------------------------------------------------------------------------
 # EditorConfig
