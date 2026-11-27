@@ -6,7 +6,7 @@ workflows:
     '.github/workflows/code-checks.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
         - 'actions/go-dependency-submission@f35d5c9af13ce9cc32f7930b171e315e878f6921'
-        - 'actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e'
+        - 'actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5'
         - 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1'
         - 'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9'
         - 'anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439'
@@ -17,15 +17,15 @@ workflows:
         - 'github/codeql-action@33d7b85da1a04171e211befe2c739303b9a4c066'
         - 'gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e'
         - 'golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a'
-        - 'j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d'
+        - 'j178/prek-action@7b101f8338a08d2bd6fdb3625e4e7692428763a3'
         - 'karancode/yamllint-github-action@4052d365f09b8d34eb552c363d1141fd60e2aeb2'
         - 'raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7'
-        - 'trufflesecurity/trufflehog@3bd2b5887eb0efb8fa18bfd1d296032924e4ffdc'
+        - 'trufflesecurity/trufflehog@d232362a64a09a9e7d58267b8f5acef00ae90e23'
         - 'umbrelladocs/action-linkspector@568ec8d29fa92b31fd9ea5381e155c51e922af83'
         - 'zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd'
     '.github/workflows/pull-request-tasks.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
-        - 'actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294'
+        - 'actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec'
         - 'actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13'
         - 'deepakputhraya/action-pr-title@3864bebc79c5f829d25dd42d3c6579d040b0ef16'
         - 'pascalgn/size-label-action@56b489b027932ec0cf60438a1a5f1a19c8fc71ff'
@@ -55,9 +55,9 @@ dependencies:
         commit: 'sha1-8e8c483db84b4bee98b60c0593521ed34d9990e8'
         owner_id: 44036562
         repo_id: 197814629
-    'actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294':
-        ref: 'v5.0.0'
-        commit: 'sha1-a1d282b36b6f3519aa1f3fc636f609c47dddb294'
+    'actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec':
+        ref: 'v5.0.1'
+        commit: 'sha1-bbc44d14a204704ccc493733616cd1e93a0321ec'
         owner_id: 44036562
         repo_id: 476372928
     'actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3':
@@ -75,9 +75,9 @@ dependencies:
         commit: 'sha1-bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13'
         owner_id: 44036562
         repo_id: 177139928
-    'actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e':
-        ref: 'v7.0.0'
-        commit: 'sha1-b7ad1dad31e06c5925ef5d2fc7ad053ef454303e'
+    'actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5':
+        ref: 'v7.1.0'
+        commit: 'sha1-d8cbb8045d7f43706b9177cceb36c1f91a6644d5'
         owner_id: 44036562
         repo_id: 192624594
     'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1':
@@ -163,9 +163,9 @@ dependencies:
         commit: 'sha1-ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a'
         owner_id: 35628013
         repo_id: 232539879
-    'j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d':
-        ref: 'v3.1.0'
-        commit: 'sha1-44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d'
+    'j178/prek-action@7b101f8338a08d2bd6fdb3625e4e7692428763a3':
+        ref: 'v3.1.1'
+        commit: 'sha1-7b101f8338a08d2bd6fdb3625e4e7692428763a3'
         owner_id: 10510431
         repo_id: 1052387486
     'karancode/yamllint-github-action@4052d365f09b8d34eb552c363d1141fd60e2aeb2':
@@ -196,9 +196,9 @@ dependencies:
         commit: 'sha1-d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f'
         owner_id: 48765237
         repo_id: 286005511
-    'trufflesecurity/trufflehog@3bd2b5887eb0efb8fa18bfd1d296032924e4ffdc':
-        ref: 'v3.99.9'
-        commit: 'sha1-3bd2b5887eb0efb8fa18bfd1d296032924e4ffdc'
+    'trufflesecurity/trufflehog@d232362a64a09a9e7d58267b8f5acef00ae90e23':
+        ref: 'v3.100.0'
+        commit: 'sha1-d232362a64a09a9e7d58267b8f5acef00ae90e23'
         owner_id: 79229934
         repo_id: 77726177
     'umbrelladocs/action-linkspector@568ec8d29fa92b31fd9ea5381e155c51e922af83':
